@@ -48,3 +48,5 @@ end
 
 gem "grape", "~> 2.0"
 gem "grape-swagger", "~> 2.0"
+
+gem "bcrypt", "~> 3.1"
