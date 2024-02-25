@@ -6,7 +6,7 @@ Rails.application.routes.draw do
   get "up" => "rails/health#show", as: :rails_health_check
 
   # Mount the Grape API at the root of the application
-  mount Diapets::API => "/"
+  mount API => "/"
 
   # Defines the root path route ("/")
   # root "posts#index"

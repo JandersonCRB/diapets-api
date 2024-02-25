@@ -52,3 +52,9 @@ gem "grape", "~> 2.0"
 gem "grape-swagger", "~> 2.0"
 
 gem "bcrypt", "~> 3.1"
+
+gem "simple_command", "~> 1.0"
+
+gem "jwt", "~> 2.7"
+
+gem "dotenv-rails", "~> 3.0"
