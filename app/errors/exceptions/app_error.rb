@@ -2,7 +2,7 @@
 
 module Exceptions
   class AppError < StandardError
-    attr_reader :status, :message
+    attr_reader :status, :message, :code
 
     def initialize(code, message, status = 500)
       @code = code
