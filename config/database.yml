@@ -22,7 +22,11 @@ development:
 # Do not set this db to the same as development or production.
 test:
   <<: *default
-  database: storage/test.sqlite3
+  database: diapets_api_test
+  host: localhost
+  username: postgres
+  password: 123456
+  port: 5432
 
 production:
   <<: *default
