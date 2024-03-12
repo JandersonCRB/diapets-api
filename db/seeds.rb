@@ -8,8 +8,7 @@
 #     MovieGenre.find_or_create_by!(name: genre_name)
 #   end
 
-# display sql queries
-ActiveRecord::Base.logger = Logger.new(STDOUT)
+default_password = "123456"
 
 janderson = User.find_by(email: "jandersonangelo@hotmail.com")
 if janderson.nil?
@@ -17,7 +16,25 @@ if janderson.nil?
     first_name: "Janderson",
     last_name: "Angelo",
     email: "jandersonangelo@hotmail.com",
-    password: "123456")
+    password: default_password)
+end
+
+naty = User.find_by(email: "nataliam.baldan@gmail.com")
+if naty.nil?
+  naty = User.create(
+    first_name: "Natália",
+    last_name: "Baldan",
+    email: "nataliam.baldan@gmail.com",
+    password: default_password)
+end
+
+matheus = User.find_by(email: "matheusoliveira@gmail.com")
+if matheus.nil?
+  matheus = User.create(
+    first_name: "Matheus",
+    last_name: "Oliveira",
+    email: "matheusoliveira@gmail.com",
+    password: default_password)
 end
 
 jasmin = Pet.find_by(name: "Jasmin")
@@ -28,4 +45,12 @@ end
 
 unless PetOwners.exists?(user: janderson, pet: jasmin)
   PetOwners.create!(user: janderson, pet: jasmin, ownership_level: "OWNER")
+end
+
+unless PetOwners.exists?(user: naty, pet: jasmin)
+  PetOwners.create!(user: naty, pet: jasmin, ownership_level: "CARETAKER")
+end
+
+unless PetOwners.exists?(user: matheus, pet: jasmin)
+  PetOwners.create!(user: matheus, pet: jasmin, ownership_level: "CARETAKER")
 end
