@@ -1,4 +1,5 @@
 class User < ApplicationRecord
+  has_many :pets, through: :pet_owners
 
   validates :first_name, presence: true
   validates :last_name, presence: true
@@ -7,5 +8,4 @@ class User < ApplicationRecord
   validates :password, presence: true
 
   has_secure_password
-
 end
