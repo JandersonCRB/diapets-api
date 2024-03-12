@@ -10,9 +10,22 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2024_03_12_000751) do
+ActiveRecord::Schema[7.1].define(version: 2024_03_12_005943) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
+
+  create_table "insulin_applications", force: :cascade do |t|
+    t.integer "glucose_level"
+    t.integer "insulin_units"
+    t.bigint "user_id"
+    t.datetime "application_time"
+    t.string "observations"
+    t.bigint "pet_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["pet_id"], name: "index_insulin_applications_on_pet_id"
+    t.index ["user_id"], name: "index_insulin_applications_on_user_id"
+  end
 
   create_table "pet_owners", id: false, force: :cascade do |t|
     t.bigint "pet_id"
@@ -43,6 +56,8 @@ ActiveRecord::Schema[7.1].define(version: 2024_03_12_000751) do
     t.index ["email"], name: "index_users_on_email", unique: true
   end
 
+  add_foreign_key "insulin_applications", "pets"
+  add_foreign_key "insulin_applications", "users"
   add_foreign_key "pet_owners", "pets"
   add_foreign_key "pet_owners", "users", column: "owner_id"
 end
