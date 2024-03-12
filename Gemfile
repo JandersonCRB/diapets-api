@@ -58,3 +58,5 @@ gem "simple_command", "~> 1.0"
 gem "jwt", "~> 2.7"
 
 gem "dotenv-rails", "~> 3.0"
+
+gem "pg", "~> 1.5"
