@@ -5,9 +5,6 @@ ruby "3.2.3"
 # Bundle edge Rails instead: gem "rails", github: "rails/rails", branch: "main"
 gem "rails", "~> 7.1.3"
 
-# Use sqlite3 as the database for Active Record
-gem "sqlite3", "~> 1.4"
-
 # Use the Puma web server [https://github.com/puma/puma]
 gem "puma", ">= 5.0"
 
@@ -39,6 +36,7 @@ group :development, :test do
   gem "factory_bot_rails", "~> 6.4"
   gem "faker", "~> 3.2"
   gem 'rspec-rails', '~> 6.1.0'
+  gem "shoulda-matchers", "~> 6.1"
   # See https://guides.rubyonrails.org/debugging_rails_applications.html#debugging-with-the-debug-gem
   gem "debug", platforms: %i[ mri windows ]
 end
@@ -50,10 +48,11 @@ end
 
 gem "grape", "~> 2.0"
 gem "grape-swagger", "~> 2.0"
-
-gem "bcrypt", "~> 3.1"
+gem "grape-entity", "~> 1.0"
 
 gem "simple_command", "~> 1.0"
+
+gem "bcrypt", "~> 3.1"
 
 gem "jwt", "~> 2.7"
 

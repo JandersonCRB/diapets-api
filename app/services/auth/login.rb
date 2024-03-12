@@ -29,9 +29,7 @@ module Auth
     end
 
     def generate_token(user)
-      JWT.encode({ user_id: user.id },
-                 jwt_secret,
-                 'HS256')
+      Jwt::Encode.call({ user_id: user.id }).result
     end
 
     def jwt_secret

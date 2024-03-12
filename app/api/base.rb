@@ -9,4 +9,5 @@
     end
 
     mount Auth::AuthAPI
+    mount Pets::PetsAPI
   end

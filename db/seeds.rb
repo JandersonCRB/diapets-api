@@ -43,14 +43,14 @@ if jasmin.nil?
   jasmin = Pet.create!(name: "Jasmin", species: "CAT", birthdate: "2012-01-01")
 end
 
-unless PetOwners.exists?(user: janderson, pet: jasmin)
-  PetOwners.create!(user: janderson, pet: jasmin, ownership_level: "OWNER")
+unless PetOwner.exists?(user: janderson, pet: jasmin)
+  PetOwner.create!(user: janderson, pet: jasmin, ownership_level: "OWNER")
 end
 
-unless PetOwners.exists?(user: naty, pet: jasmin)
-  PetOwners.create!(user: naty, pet: jasmin, ownership_level: "CARETAKER")
+unless PetOwner.exists?(user: naty, pet: jasmin)
+  PetOwner.create!(user: naty, pet: jasmin, ownership_level: "CARETAKER")
 end
 
-unless PetOwners.exists?(user: matheus, pet: jasmin)
-  PetOwners.create!(user: matheus, pet: jasmin, ownership_level: "CARETAKER")
+unless PetOwner.exists?(user: matheus, pet: jasmin)
+  PetOwner.create!(user: matheus, pet: jasmin, ownership_level: "CARETAKER")
 end
