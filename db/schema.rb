@@ -10,9 +10,29 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2024_03_12_005943) do
+ActiveRecord::Schema[7.1].define(version: 2024_03_12_010409) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
+
+  create_table "insulin_alarm_responsibles", id: false, force: :cascade do |t|
+    t.bigint "user_id", null: false
+    t.bigint "insulin_alarm_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["insulin_alarm_id"], name: "index_insulin_alarm_responsibles_on_insulin_alarm_id"
+    t.index ["user_id"], name: "index_insulin_alarm_responsibles_on_user_id"
+  end
+
+  create_table "insulin_alarms", force: :cascade do |t|
+    t.integer "hour"
+    t.integer "minute"
+    t.string "title"
+    t.boolean "status"
+    t.bigint "pet_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["pet_id"], name: "index_insulin_alarms_on_pet_id"
+  end
 
   create_table "insulin_applications", force: :cascade do |t|
     t.integer "glucose_level"
@@ -56,6 +76,9 @@ ActiveRecord::Schema[7.1].define(version: 2024_03_12_005943) do
     t.index ["email"], name: "index_users_on_email", unique: true
   end
 
+  add_foreign_key "insulin_alarm_responsibles", "insulin_alarms"
+  add_foreign_key "insulin_alarm_responsibles", "users"
+  add_foreign_key "insulin_alarms", "pets"
   add_foreign_key "insulin_applications", "pets"
   add_foreign_key "insulin_applications", "users"
   add_foreign_key "pet_owners", "pets"
