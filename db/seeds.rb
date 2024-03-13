@@ -7,50 +7,42 @@
 #   ["Action", "Comedy", "Drama", "Horror"].each do |genre_name|
 #     MovieGenre.find_or_create_by!(name: genre_name)
 #   end
-
-default_password = "123456"
-
-janderson = User.find_by(email: "jandersonangelo@hotmail.com")
-if janderson.nil?
-  janderson = User.create(
-    first_name: "Janderson",
-    last_name: "Angelo",
-    email: "jandersonangelo@hotmail.com",
-    password: default_password)
+def default_password
+  "123456"
 end
 
-naty = User.find_by(email: "nataliam.baldan@gmail.com")
-if naty.nil?
-  naty = User.create(
-    first_name: "Natália",
-    last_name: "Baldan",
-    email: "nataliam.baldan@gmail.com",
-    password: default_password)
+def create_user(email, first_name, last_name)
+  user = User.find_by(email: email)
+  if user.nil?
+    user = User.create(
+      first_name: first_name,
+      last_name: last_name,
+      email: email,
+      password: default_password)
+  end
+  user
 end
 
-matheus = User.find_by(email: "matheusoliveira@gmail.com")
-if matheus.nil?
-  matheus = User.create(
-    first_name: "Matheus",
-    last_name: "Oliveira",
-    email: "matheusoliveira@gmail.com",
-    password: default_password)
+def create_pet(name, species, birthdate, insulin_frequency)
+  pet = Pet.find_by(name: name)
+  if pet.nil?
+    pet = Pet.create!(name: name, species: species, birthdate: birthdate, insulin_frequency: insulin_frequency)
+  end
+  pet
 end
 
-jasmin = Pet.find_by(name: "Jasmin")
-
-if jasmin.nil?
-  jasmin = Pet.create!(name: "Jasmin", species: "CAT", birthdate: "2012-01-01", insulin_frequency: 12)
+def create_pet_owner(user, pet, ownership_level)
+  unless PetOwner.exists?(owner_id: user.id, pet: pet)
+    PetOwner.create!(owner_id: user.id, pet: pet, ownership_level: ownership_level)
+  end
 end
 
-unless PetOwner.exists?(user: janderson, pet: jasmin)
-  PetOwner.create!(user: janderson, pet: jasmin, ownership_level: "OWNER")
-end
+janderson = create_user("jandersonangelo@hotmail.com", "Janderson", "Angelo")
+natalia = create_user("nataliam.baldan@gmail.com", "Natália", "Baldan")
+matheus = create_user("matheusoliveira@gmail.com", "Matheus", "Oliveira")
 
-unless PetOwner.exists?(user: naty, pet: jasmin)
-  PetOwner.create!(user: naty, pet: jasmin, ownership_level: "CARETAKER")
-end
+jasmin = create_pet("Jasmin", "CAT", "2012-01-01", 12)
 
-unless PetOwner.exists?(user: matheus, pet: jasmin)
-  PetOwner.create!(user: matheus, pet: jasmin, ownership_level: "CARETAKER")
-end
+create_pet_owner(janderson, jasmin, "OWNER")
+create_pet_owner(natalia, jasmin, "CARETAKER")
+create_pet_owner(matheus, jasmin, "CARETAKER")
