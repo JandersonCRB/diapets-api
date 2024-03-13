@@ -6,4 +6,7 @@ class Pet < ApplicationRecord
 
   validates :name, presence: true
   validates :species, presence: true, inclusion: { in: SPECIES }
+
+  # insulin_frequency is the number of hours between insulin shots
+  validates :insulin_frequency, presence: true, numericality: { only_integer: true, greater_than: 0 }
 end

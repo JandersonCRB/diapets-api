@@ -40,7 +40,7 @@ end
 jasmin = Pet.find_by(name: "Jasmin")
 
 if jasmin.nil?
-  jasmin = Pet.create!(name: "Jasmin", species: "CAT", birthdate: "2012-01-01")
+  jasmin = Pet.create!(name: "Jasmin", species: "CAT", birthdate: "2012-01-01", insulin_frequency: 12)
 end
 
 unless PetOwner.exists?(user: janderson, pet: jasmin)
