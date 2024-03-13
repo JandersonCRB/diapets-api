@@ -11,6 +11,14 @@ module Pets
       end
 
       route_param :pet_id do
+        desc 'Get pet dashboard'
+        get '/dashboard' do
+          user_authenticate!
+          dashboard = Pets::Dashboard.call(decoded_token, params).result
+
+          present dashboard, with: Entities::PetDashboardEntity
+        end
+        
         namespace :insulin_applications do
           desc 'Register insulin application'
           params do

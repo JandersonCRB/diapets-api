@@ -11,5 +11,11 @@ module Helpers
 
       raise Exceptions::UnauthorizedError.new
     end
+
+    def validate_pet_existence(pet_id)
+      return if Pet.exists?(id: pet_id)
+
+      raise Exceptions::NotFoundError.new
+    end
   end
 end

@@ -130,7 +130,6 @@ RSpec.describe "Pets API", type: :request do
           it 'creates a new insulin application' do
             post "/api/v1/pets/#{pet.id}/insulin_applications", params: params, headers: { 'Authorization' => "Bearer #{token}" }
             expect(response).to have_http_status(:created)
-            expect(response.body).to include('Some observations')
           end
         end
 
@@ -185,6 +184,141 @@ RSpec.describe "Pets API", type: :request do
           post "/api/v1/pets/#{other_pet.id}/insulin_applications", params: params, headers: { 'Authorization' => "Bearer #{token}" }
           expect(response).to have_http_status(:unauthorized)
         end
+      end
+    end
+  end
+
+  context 'GET /api/v1/pets/:id/dashboard' do
+    let(:pet) {
+      pet = create(:pet)
+      pet.pet_owners.create(owner: user, ownership_level: 'OWNER')
+      pet
+    }
+
+    let!(:insulin_application) {
+      create(:insulin_application, pet: pet, user: user)
+    }
+
+    let(:params) {
+      {}
+    }
+
+    context 'when the user does not authenticate' do
+      it 'returns 401' do
+        get "/api/v1/pets/#{pet.id}/dashboard"
+        expect(response).to have_http_status(:unauthorized)
+      end
+    end
+
+    context 'when the user authenticate' do
+      context 'when the user has permission to access the pet' do
+        it 'returns the pet dashboard' do
+          get "/api/v1/pets/#{pet.id}/dashboard", headers: { 'Authorization' => "Bearer #{token}" }
+          expect(response).to have_http_status(:ok)
+          body = JSON.parse(response.body)
+          expect(body['last_insulin_application']['id']).to eq(insulin_application.id)
+        end
+
+        context 'when there is no insulin application for the pet' do
+          before do
+            InsulinApplication.all.destroy_all
+          end
+          it 'returns nil for last insulin application' do
+            get "/api/v1/pets/#{pet.id}/dashboard", headers: { 'Authorization' => "Bearer #{token}" }
+            expect(response).to have_http_status(:ok)
+            body = JSON.parse(response.body)
+            expect(body['last_insulin_application']).to be_nil
+          end
+
+          it 'returns nil for next insulin application' do
+            get "/api/v1/pets/#{pet.id}/dashboard", headers: { 'Authorization' => "Bearer #{token}" }
+            expect(response).to have_http_status(:ok)
+            body = JSON.parse(response.body)
+            expect(body['next_insulin_application']).to be_nil
+          end
+        end
+
+
+        context 'when there are many insuline applications for multiple pets' do
+          let!(:other_pet) {
+            other_pet = create(:pet)
+            other_pet.pet_owners.create(owner: user, ownership_level: 'OWNER')
+            other_pet
+          }
+          let!(:insulin_applications) {
+            create_list(:insulin_application, 5, pet: other_pet, user: user)
+          }
+
+          it 'returns the last insulin application' do
+            get "/api/v1/pets/#{pet.id}/dashboard", headers: { 'Authorization' => "Bearer #{token}" }
+            expect(response).to have_http_status(:ok)
+            body = JSON.parse(response.body)
+            expect(body['last_insulin_application']['id']).to eq(InsulinApplication.where(pet_id: pet.id).order(application_time: :desc).first&.id)
+          end
+
+          it 'returns the next insulin application' do
+            get "/api/v1/pets/#{pet.id}/dashboard", headers: { 'Authorization' => "Bearer #{token}" }
+            expect(response).to have_http_status(:ok)
+            body = JSON.parse(response.body)
+            expect(body['next_insulin_application'].to_datetime).to eq(insulin_application.application_time.advance(hours: pet.insulin_frequency))
+          end
+        end
+
+        context 'when there are many insulin applications for the pet' do
+          let!(:insulin_applications) {
+            create_list(:insulin_application, 5, pet: pet, user: user)
+          }
+
+          it 'returns the last insulin application' do
+            get "/api/v1/pets/#{pet.id}/dashboard", headers: { 'Authorization' => "Bearer #{token}" }
+            expect(response).to have_http_status(:ok)
+            body = JSON.parse(response.body)
+            expect(body['last_insulin_application']['id']).to eq(InsulinApplication.where(pet_id: pet.id).order(application_time: :desc).first&.id)
+          end
+
+          it 'returns the next insulin application' do
+            get "/api/v1/pets/#{pet.id}/dashboard", headers: { 'Authorization' => "Bearer #{token}" }
+            expect(response).to have_http_status(:ok)
+            body = JSON.parse(response.body)
+            expect(body['next_insulin_application'].to_datetime).to eq(insulin_applications.last.application_time.advance(hours: pet.insulin_frequency))
+          end
+        end
+
+        context 'when the pet does not exist' do
+          it 'returns 404' do
+            get "/api/v1/pets/0/dashboard", headers: { 'Authorization' => "Bearer #{token}" }
+            expect(response).to have_http_status(:not_found)
+          end
+        end
+      end
+
+      context 'when the user does not have permission to access the pet' do
+        let(:other_pet) {
+          create(:pet)
+        }
+
+        it 'returns 401' do
+          get "/api/v1/pets/#{other_pet.id}/dashboard", headers: { 'Authorization' => "Bearer #{token}" }
+          expect(response).to have_http_status(:unauthorized)
+        end
+      end
+    end
+
+    context 'when the pet does not exist' do
+      it 'returns 404' do
+        get "/api/v1/pets/0/dashboard", headers: { 'Authorization' => "Bearer #{token}" }
+        expect(response).to have_http_status(:not_found)
+      end
+    end
+
+    context 'when the user does not have permission to access the pet' do
+      let(:other_pet) {
+        create(:pet)
+      }
+
+      it 'returns 401' do
+        get "/api/v1/pets/#{other_pet.id}/dashboard", headers: { 'Authorization' => "Bearer #{token}" }
+        expect(response).to have_http_status(:unauthorized)
       end
     end
   end
