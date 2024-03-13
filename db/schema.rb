@@ -48,7 +48,7 @@ ActiveRecord::Schema[7.1].define(version: 2024_03_12_010409) do
     t.index ["user_id"], name: "index_insulin_applications_on_user_id"
   end
 
-  create_table "pet_owners", id: false, force: :cascade do |t|
+  create_table "pet_owners", force: :cascade do |t|
     t.bigint "pet_id"
     t.bigint "owner_id"
     t.string "ownership_level"

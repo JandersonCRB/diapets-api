@@ -1,6 +1,6 @@
 class CreatePetOwners < ActiveRecord::Migration[7.1]
   def change
-    create_table :pet_owners, id: false do |t|
+    create_table :pet_owners do |t|
       t.references :pet, foreign_key: { to_table: :pets}
       t.references :owner, foreign_key: { to_table: :users }
       t.string :ownership_level
