@@ -9,10 +9,14 @@ module Pets
 
     def call
       validate_user_existence
-      Pet.includes(:owners).where(owners: { id: user_id })
+      Pet.includes(:owners).where(pet_owners: { pet_id: pet_ids })
     end
 
     private
+
+    def pet_ids
+      @pet_ids ||= PetOwner.where(owner_id: user_id).pluck(:pet_id)
+    end
 
     def user_id
       @user_id ||= @decoded_token[:user_id]

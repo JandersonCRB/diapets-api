@@ -86,6 +86,12 @@ RSpec.describe Pets::FindAllByUser do
 
           expect(pets).to eq([pet])
         end
+
+        it 'returns all the owners for the pet' do
+          pets = described_class.call(decoded_token, params).result
+
+          expect(pets.first.owners).to eq([user, other_user])
+        end
       end
 
       context 'when user has pets and there are other pets' do
