@@ -25,6 +25,7 @@ module Pets
             requires :glucose_level, type: Integer
             requires :insulin_units, type: Integer
             requires :application_time, type: DateTime
+            requires :responsible_id, type: Integer
             optional :observations, type: String
           end
           post '' do

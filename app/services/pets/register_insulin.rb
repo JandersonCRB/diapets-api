@@ -9,8 +9,10 @@ module Pets
     end
 
     def call
+      validate_user_existence(@params[:responsible_id])
       validate_pet_existence(pet_id)
-      validate_pet_permission(user_id, pet_id)
+      validate_pet_permission(@decoded_token[:user_id], pet_id)
+      validate_pet_permission(@params[:responsible_id], pet_id)
       register_insulin
     end
 
@@ -19,12 +21,18 @@ module Pets
     def register_insulin
       InsulinApplication.create!(
         pet_id: pet_id,
-        user_id: user_id,
+        user_id: @params[:responsible_id],
         glucose_level: @params[:glucose_level],
         insulin_units: @params[:insulin_units],
         application_time: @params[:application_time],
         observations: @params[:observations]
       )
+    end
+
+    def validate_user_existence(user_id)
+      return if User.exists?(user_id)
+
+      raise Exceptions::NotFoundError, 'User not found'
     end
 
     def validate_pet_existence(pet_id)
@@ -35,10 +43,6 @@ module Pets
 
     def pet_id
       @params[:pet_id]
-    end
-
-    def user_id
-      @decoded_token[:user_id]
     end
   end
 end

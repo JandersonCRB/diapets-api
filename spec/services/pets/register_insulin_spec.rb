@@ -16,7 +16,8 @@ describe Pets::RegisterInsulin, type: :service do
       glucose_level: 100,
       insulin_units: 2,
       application_time: "2024-03-13T14:00",
-      observations: 'Some observations'
+      observations: 'Some observations',
+      responsible_id: user.id
     }
   end
 
@@ -80,12 +81,89 @@ describe Pets::RegisterInsulin, type: :service do
 
   context 'when the user does not exist' do
     before do
-      decoded_token[:user_id] = 0
+      params[:responsible_id] = 0
     end
     it 'raises a UnauthorizedError' do
       expect do
         described_class.call(decoded_token, params)
-      end.to raise_error(Exceptions::UnauthorizedError)
+      end.to raise_error(Exceptions::NotFoundError)
+    end
+  end
+
+  context 'when the responsible exists' do
+    context 'when the caller does not have permission to the pet' do
+      let!(:responsible) { create(:user) }
+      let!(:other_pet) { create(:pet) }
+
+      before do
+        params[:pet_id] = other_pet.id
+        params[:responsible_id] = responsible.id
+        create(:pet_owner, owner: responsible, pet: other_pet, ownership_level: 'OWNER')
+      end
+
+      it 'raises a UnauthorizedError' do
+        expect do
+          described_class.call(decoded_token, params)
+        end.to raise_error(Exceptions::UnauthorizedError)
+      end
+    end
+    context 'when its the same user' do
+      it 'creates a new insulin application' do
+        expect do
+          described_class.call(decoded_token, params)
+        end.to change { InsulinApplication.count }.by(1)
+      end
+
+      it 'returns the created insulin instance' do
+        result = described_class.call(decoded_token, params).result
+        expect(result).to be_a(InsulinApplication)
+      end
+
+      it 'does not raise error' do
+        expect do
+          described_class.call(decoded_token, params)
+        end.not_to raise_error
+      end
+    end
+
+    context 'when its a different owner user' do
+      let!(:responsible) { create(:user) }
+      before do
+        params[:responsible_id] = responsible.id
+        create(:pet_owner, owner: responsible, pet: pet, ownership_level: 'CARETAKER')
+      end
+      it 'creates a new insulin application' do
+        expect do
+          described_class.call(decoded_token, params)
+        end.to change { InsulinApplication.count }.by(1)
+      end
+
+      it 'returns the created insulin instance' do
+        result = described_class.call(decoded_token, params).result
+        expect(result).to be_a(InsulinApplication)
+      end
+
+      it 'register the responsible user' do
+        result = described_class.call(decoded_token, params).result
+        expect(result.user_id).to eq(responsible.id)
+      end
+
+      it 'does not raise error' do
+        expect do
+          described_class.call(decoded_token, params)
+        end.not_to raise_error
+      end
+    end
+  end
+
+  context 'when the responsible does not exist' do
+    before do
+      params[:responsible_id] = 0
+    end
+    it 'raises a NotFoundError' do
+      expect do
+        described_class.call(decoded_token, params)
+      end.to raise_error(Exceptions::NotFoundError)
     end
   end
 end
