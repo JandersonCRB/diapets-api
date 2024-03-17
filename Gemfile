@@ -59,3 +59,5 @@ gem "jwt", "~> 2.7"
 gem "dotenv-rails", "~> 3.0"
 
 gem "pg", "~> 1.5"
+
+gem "scout_apm", "~> 5.3"

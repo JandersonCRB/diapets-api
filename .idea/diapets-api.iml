@@ -109,7 +109,6 @@
     <orderEntry type="library" scope="PROVIDED" name="rspec-support (v3.13.0, Remote-rvm: ruby-3.2.3 (-p157) [gem]" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="shoulda-matchers (v6.1.0, Remote-rvm: ruby-3.2.3 (-p157) [gem]" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="simple_command (v1.0.1, Remote-rvm: ruby-3.2.3 (-p157) [gem]" level="application" />
-    <orderEntry type="library" scope="PROVIDED" name="sqlite3 (v1.7.2, Remote-rvm: ruby-3.2.3 (-p157) [gem]" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="stringio (v3.1.0, Remote-rvm: ruby-3.2.3 (-p157) [gem]" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="thor (v1.3.0, Remote-rvm: ruby-3.2.3 (-p157) [gem]" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="timeout (v0.4.1, Remote-rvm: ruby-3.2.3 (-p157) [gem]" level="application" />
@@ -496,6 +495,12 @@
           <RakeTaskImpl id="log">
             <subtasks>
               <RakeTaskImpl description="Truncate all/specified *.log files in log/ to zero bytes (specify which logs with LOGS=test,development)" fullCommand="log:clear" id="clear" />
+            </subtasks>
+          </RakeTaskImpl>
+          <RakeTaskImpl id="scout">
+            <subtasks>
+              <RakeTaskImpl description="Prints out details of the detected environment" fullCommand="scout:doctor" id="doctor" />
+              <RakeTaskImpl description="Collect logs, settings and environment to help debug issues" fullCommand="scout:support" id="support" />
             </subtasks>
           </RakeTaskImpl>
           <RakeTaskImpl description="Run all specs in spec directory (excluding plugin specs)" fullCommand="spec" id="spec" />
