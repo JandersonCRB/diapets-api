@@ -5,7 +5,7 @@
     end
 
     rescue_from Exceptions::InternalServerError do |e|
-      Rails.logger.error(e)
+      Rails.logger.error("Unexpected error:\nType: #{e.class}\nMessage:#{e.message}\nCode: #{e.code}\nStatus:#{e.status}\nBacktrace: #{e.backtrace.join("\n")}")
       error!({ error_code: e.code, error_message: e.message }, e.status)
     end
 
