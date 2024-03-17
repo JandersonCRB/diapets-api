@@ -11,7 +11,8 @@ module Auth
       validate_password(user)
 
       {
-        token: generate_token(user)
+        token: generate_token(user),
+        user: user
       }
     end
 
@@ -33,7 +34,7 @@ module Auth
     end
 
     def jwt_secret
-      secret = ENV.fetch('JWT_SECRET')
+      secret = ENV.fetch('JWT_SECRET', nil)
 
       raise Exceptions::InternalServerError.new("JWT_SECRET ENV VARIABLE NOT SET") if secret.nil?
 

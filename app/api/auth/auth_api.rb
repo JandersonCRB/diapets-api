@@ -10,7 +10,8 @@
           end
           post do
             status :ok
-            Auth::Login.call(params).result
+            login_result = Auth::Login.call(params).result
+            present login_result, with: Entities::LoginEntitiy
           end
         end
       end

@@ -10,6 +10,11 @@ RSpec.describe Auth::Login, type: :service do
         result = described_class.call(params).result
         expect(result).to include(:token)
       end
+
+      it 'returns a user' do
+        result = described_class.call(params).result
+        expect(result).to include(:user)
+      end
     end
 
     context 'when password is invalid' do
@@ -23,7 +28,8 @@ RSpec.describe Auth::Login, type: :service do
 
     context 'when JWT_SECRET ENV variable is not set' do
       it 'returns an error' do
-        allow(ENV).to receive(:fetch).with('JWT_SECRET').and_return(nil)
+        allow(ENV).to receive(:fetch).and_call_original
+        allow(ENV).to receive(:fetch).with('JWT_SECRET', nil).and_return(nil)
         expect do
           described_class.call(params)
         end.to raise_error(Exceptions::InternalServerError)
