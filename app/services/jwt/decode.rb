@@ -12,7 +12,7 @@ module Jwt
       decoded = JWT.decode(token, jwt_secret, verify, { algorithm: 'HS256' })[0]
       raise Exceptions::InvalidTokenError.new, 'Invalid Token' if decoded.blank?
       decoded.symbolize_keys
-    rescue JWT::VerificationError => e
+    rescue JWT::VerificationError, JWT::DecodeError => e
       raise Exceptions::InvalidTokenError.new, 'Invalid Token' if decoded.blank?
     end
 
