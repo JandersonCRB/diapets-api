@@ -1,4 +1,5 @@
 class User < ApplicationRecord
+  has_many :push_tokens
   has_many :pet_owners, foreign_key: :owner_id
   has_many :pets, through: :pet_owners
 

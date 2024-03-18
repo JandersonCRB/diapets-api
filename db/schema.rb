@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2024_03_12_010409) do
+ActiveRecord::Schema[7.1].define(version: 2024_03_18_145132) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -68,6 +68,14 @@ ActiveRecord::Schema[7.1].define(version: 2024_03_12_010409) do
     t.datetime "updated_at", null: false
   end
 
+  create_table "push_tokens", force: :cascade do |t|
+    t.bigint "user_id", null: false
+    t.string "token"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["user_id"], name: "index_push_tokens_on_user_id"
+  end
+
   create_table "users", force: :cascade do |t|
     t.string "first_name", limit: 100
     t.string "last_name", limit: 300
@@ -85,4 +93,5 @@ ActiveRecord::Schema[7.1].define(version: 2024_03_12_010409) do
   add_foreign_key "insulin_applications", "users"
   add_foreign_key "pet_owners", "pets"
   add_foreign_key "pet_owners", "users", column: "owner_id"
+  add_foreign_key "push_tokens", "users"
 end

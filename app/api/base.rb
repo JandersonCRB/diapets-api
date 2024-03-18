@@ -16,4 +16,5 @@
     mount Auth::AuthAPI
     mount Pets::PetsAPI
     mount Pets::InsulinApplicationAPI
+    mount Users::UsersAPI
   end
