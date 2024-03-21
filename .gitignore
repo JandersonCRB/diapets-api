@@ -33,3 +33,4 @@
 /config/master.key
 /.idea/copilot/chatSessions/xd.lck
 /credentials/*
+!/credentials/.keep
