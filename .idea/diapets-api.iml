@@ -80,6 +80,7 @@
     <orderEntry type="library" scope="PROVIDED" name="mustermann (v3.0.0, Remote-rvm: ruby-3.2.3 (-p157) [gem]" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="mustermann-grape (v1.0.2, Remote-rvm: ruby-3.2.3 (-p157) [gem]" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="mutex_m (v0.2.0, Remote-rvm: ruby-3.2.3 (-p157) [gem]" level="application" />
+    <orderEntry type="library" scope="PROVIDED" name="net-http (v0.4.1, Remote-rvm: ruby-3.2.3 (-p157) [gem]" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="net-imap (v0.4.10, Remote-rvm: ruby-3.2.3 (-p157) [gem]" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="net-pop (v0.1.2, Remote-rvm: ruby-3.2.3 (-p157) [gem]" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="net-protocol (v0.2.2, Remote-rvm: ruby-3.2.3 (-p157) [gem]" level="application" />
@@ -397,6 +398,11 @@
               </RakeTaskImpl>
             </subtasks>
           </RakeTaskImpl>
+          <RakeTaskImpl id="brick">
+            <subtasks>
+              <RakeTaskImpl description="Find any seemingly-orphaned records" fullCommand="brick:orphans" id="orphans" />
+            </subtasks>
+          </RakeTaskImpl>
           <RakeTaskImpl id="db">
             <subtasks>
               <RakeTaskImpl description="Create the database from DATABASE_URL or config/database.yml for the current RAILS_ENV (use db:create:all to create all databases in the config). Without RAILS_ENV or when RAILS_ENV is development, it defaults to creating the development and test databases, except when DATABASE_URL is present" fullCommand="db:create" id="create" />
@@ -492,6 +498,11 @@
                 </subtasks>
               </RakeTaskImpl>
               <RakeTaskImpl description="" fullCommand="db:truncate_all" id="truncate_all" />
+            </subtasks>
+          </RakeTaskImpl>
+          <RakeTaskImpl id="insulins">
+            <subtasks>
+              <RakeTaskImpl description="Notify insulins" fullCommand="insulins:notify" id="notify" />
             </subtasks>
           </RakeTaskImpl>
           <RakeTaskImpl id="log">

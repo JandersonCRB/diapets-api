@@ -63,3 +63,5 @@ gem "pg", "~> 1.5"
 gem "scout_apm", "~> 5.3"
 
 gem "rollbar", "~> 3.5"
+
+gem "fcm", "~> 1.0"

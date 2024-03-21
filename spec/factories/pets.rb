@@ -5,5 +5,7 @@ FactoryBot.define do
     birthdate { "2024-03-11" }
     insulin_frequency { 12 }
     owners { [] }
+    created_at { Time.now.utc }
+    updated_at { Time.now.utc }
   end
 end

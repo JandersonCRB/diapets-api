@@ -10,30 +10,9 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2024_03_18_145132) do
+ActiveRecord::Schema[7.1].define(version: 2024_03_21_005611) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
-
-  create_table "insulin_alarm_responsibles", id: false, force: :cascade do |t|
-    t.bigint "user_id", null: false
-    t.bigint "insulin_alarm_id", null: false
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.index ["insulin_alarm_id"], name: "index_insulin_alarm_responsibles_on_insulin_alarm_id"
-    t.index ["user_id", "insulin_alarm_id"], name: "idx_on_user_id_insulin_alarm_id_cef008e99a", unique: true
-    t.index ["user_id"], name: "index_insulin_alarm_responsibles_on_user_id"
-  end
-
-  create_table "insulin_alarms", force: :cascade do |t|
-    t.integer "hour"
-    t.integer "minute"
-    t.string "title"
-    t.boolean "status"
-    t.bigint "pet_id", null: false
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.index ["pet_id"], name: "index_insulin_alarms_on_pet_id"
-  end
 
   create_table "insulin_applications", force: :cascade do |t|
     t.integer "glucose_level"
@@ -44,6 +23,7 @@ ActiveRecord::Schema[7.1].define(version: 2024_03_18_145132) do
     t.bigint "pet_id", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.index ["application_time"], name: "index_insulin_applications_on_application_time"
     t.index ["pet_id"], name: "index_insulin_applications_on_pet_id"
     t.index ["user_id"], name: "index_insulin_applications_on_user_id"
   end
@@ -76,6 +56,16 @@ ActiveRecord::Schema[7.1].define(version: 2024_03_18_145132) do
     t.index ["user_id"], name: "index_push_tokens_on_user_id"
   end
 
+  create_table "sent_notifications", force: :cascade do |t|
+    t.bigint "pet_id", null: false
+    t.integer "minutes_alarm"
+    t.bigint "last_insulin_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["last_insulin_id"], name: "index_sent_notifications_on_last_insulin_id"
+    t.index ["pet_id"], name: "index_sent_notifications_on_pet_id"
+  end
+
   create_table "users", force: :cascade do |t|
     t.string "first_name", limit: 100
     t.string "last_name", limit: 300
@@ -86,12 +76,11 @@ ActiveRecord::Schema[7.1].define(version: 2024_03_18_145132) do
     t.index ["email"], name: "index_users_on_email", unique: true
   end
 
-  add_foreign_key "insulin_alarm_responsibles", "insulin_alarms"
-  add_foreign_key "insulin_alarm_responsibles", "users"
-  add_foreign_key "insulin_alarms", "pets"
   add_foreign_key "insulin_applications", "pets"
   add_foreign_key "insulin_applications", "users"
   add_foreign_key "pet_owners", "pets"
   add_foreign_key "pet_owners", "users", column: "owner_id"
   add_foreign_key "push_tokens", "users"
+  add_foreign_key "sent_notifications", "insulin_applications", column: "last_insulin_id"
+  add_foreign_key "sent_notifications", "pets"
 end
