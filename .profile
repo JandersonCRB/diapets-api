@@ -1,1 +1,1 @@
-echo ${GOOGLE_CREDENTIALS} > /app/credentials/fcm-credentials.json
+echo ${FCM_CREDENTIALS} > /app/credentials/fcm-credentials.json
