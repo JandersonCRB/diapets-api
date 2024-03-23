@@ -1,7 +1,7 @@
 class Pet < ApplicationRecord
-  has_many :pet_owners
-  has_many :owners, through: :pet_owners, source: :owner
-  has_many :insulin_applications
+  has_many :pet_owners, dependent: :destroy
+  has_many :owners, through: :pet_owners, source: :owner, dependent: :destroy
+  has_many :insulin_applications, dependent: :destroy
 
   SPECIES = %w(DOG CAT)
 

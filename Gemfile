@@ -42,6 +42,7 @@ group :development, :test do
 end
 
 group :development do
+  gem 'grape_on_rails_routes', '~> 0.3.2'
   # Speed up commands on slow machines / big apps [https://github.com/rails/spring]
   # gem "spring"
 end
