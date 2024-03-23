@@ -6,6 +6,14 @@ module Pets
       route_param :pet_id do
         namespace :insulin_applications do
           desc 'List all the pet insulin applications'
+          params do
+            optional :min_date, type: DateTime, desc: 'The minimum date of the insulin applications'
+            optional :max_date, type: DateTime, desc: 'The maximum date of the insulin applications'
+            optional :min_units, type: Integer, desc: 'The minimum insulin units of the insulin applications'
+            optional :max_units, type: Integer, desc: 'The maximum insulin units of the insulin applications'
+            optional :min_glucose, type: Integer, desc: 'The minimum glucose level of the insulin applications'
+            optional :max_glucose, type: Integer, desc: 'The maximum glucose level of the insulin applications'
+          end
           get '' do
             user_authenticate!
             insulin_applications = Pets::FindAllInsulinApplications.call(decoded_token, params).result
