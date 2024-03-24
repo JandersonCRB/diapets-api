@@ -202,4 +202,53 @@ describe Pets::InsulinApplicationAPI, type: :request do
       expect(response).to have_http_status(:ok)
     end
   end
+
+  context 'GET /insulin_applications/:insulin_application_id' do
+    let!(:insulin_application) { create(:insulin_application, pet: pet, user: user) }
+
+    context 'when user is not authenticated' do
+      it 'returns unauthorized' do
+        get "/api/v1/insulin_applications/#{insulin_application.id}"
+        expect(response).to have_http_status(:unauthorized)
+      end
+    end
+
+    context 'when the insulin application does not exist' do
+      it 'returns not found' do
+        get "/api/v1/insulin_applications/0", headers: { 'Authorization' => "Bearer #{token}" }
+        expect(response).to have_http_status(:not_found)
+      end
+    end
+
+    context 'when the user does not have permission to access the insulin application' do
+      let(:other_pet) { create(:pet) }
+      let(:other_insulin_application) { create(:insulin_application, pet: other_pet) }
+      it 'returns unauthorized' do
+        get "/api/v1/insulin_applications/#{other_insulin_application.id}", headers: { 'Authorization' => "Bearer #{token}" }
+        expect(response).to have_http_status(:unauthorized)
+      end
+    end
+
+    context 'when the insulin application exists' do
+      it 'returns the insulin application' do
+        get "/api/v1/insulin_applications/#{insulin_application.id}", headers: { 'Authorization' => "Bearer #{token}" }
+        expect(response).to have_http_status(:ok)
+        body = JSON.parse(response.body)
+        expect(body["id"]).to eq(insulin_application.id)
+      end
+    end
+
+    context 'when the user is a caretaker' do
+      before do
+        PetOwner.where(owner_id: user.id, pet_id: pet.id).update(ownership_level: 'CARETAKER')
+      end
+
+      it 'returns the insulin application' do
+        get "/api/v1/insulin_applications/#{insulin_application.id}", headers: { 'Authorization' => "Bearer #{token}" }
+        expect(response).to have_http_status(:ok)
+        body = JSON.parse(response.body)
+        expect(body["id"]).to eq(insulin_application.id)
+      end
+    end
+  end
 end

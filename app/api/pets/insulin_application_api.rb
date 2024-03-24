@@ -29,7 +29,18 @@ module Pets
             present filters, with: Entities::InsulinApplicationsFiltersEntity
           end
         end
+      end
+    end
 
+    namespace :insulin_applications do
+      route_param :insulin_application_id do
+        desc 'Get the pet insulin application'
+        get '' do
+          user_authenticate!
+          insulin_application = InsulinApplications::FindOne.call(decoded_token, params).result
+
+          present insulin_application, with: Entities::InsulinApplicationEntity
+        end
       end
     end
   end
