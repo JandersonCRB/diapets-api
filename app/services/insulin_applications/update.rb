@@ -34,7 +34,13 @@ module InsulinApplications
     end
 
     def update_params
-      @params.slice(:application_time, :insulin_units, :glucose_level, :user_id)
+      {
+        application_time: @params[:application_time],
+        insulin_units: @params[:insulin_units],
+        glucose_level: @params[:glucose_level],
+        user_id: @params[:responsible_id],
+        observations: @params[:observations]
+      }
     end
 
     def user_id

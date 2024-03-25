@@ -12,7 +12,7 @@ RSpec.describe InsulinApplications::Update, type: :service do
       application_time: "2021-01-01 12:00:00",
       insulin_units: 2,
       glucose_level: 100,
-      user_id: user.id
+      responsible_id: user.id
     }
   }
 

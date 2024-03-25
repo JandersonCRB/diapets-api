@@ -256,9 +256,10 @@ describe Pets::InsulinApplicationAPI, type: :request do
     let!(:insulin_application) { create(:insulin_application, pet: pet, user: user) }
     let!(:params) {
       {
-        application_time: insulin_application.application_time + 1.day,
+        application_time: insulin_application.application_time.utc + 1.day,
         insulin_units: insulin_application.insulin_units + 1,
-        glucose_level: insulin_application.glucose_level + 1
+        glucose_level: insulin_application.glucose_level + 1,
+        responsible_id: user.id
       }
     }
 
@@ -324,21 +325,21 @@ describe Pets::InsulinApplicationAPI, type: :request do
 
     context 'when the insulin application exists' do
       it 'returns the insulin application' do
-        put "/api/v1/insulin_applications/#{insulin_application.id}", params: params, headers: { 'Authorization ' => "Bearer #{token}" }
+        put "/api/v1/insulin_applications/#{insulin_application.id}", params: params, headers: { 'Authorization' => "Bearer #{token}" }
         expect(response).to have_http_status(:ok)
         body = JSON.parse(response.body)
         expect(body["id"]).to eq(insulin_application.id)
       end
 
       it 'updates the insulin application' do
-        put "/api/v1/insulin_applications/#{insulin_application.id}", params: params, headers: { 'Authorization ' => "Bearer #{token}" }
+        put "/api/v1/insulin_applications/#{insulin_application.id}", params: params, headers: { 'Authorization' => "Bearer #{token}" }
         expect(insulin_application.reload.application_time).to eq(params[:application_time])
         expect(insulin_application.reload.insulin_units).to eq(params[:insulin_units])
         expect(insulin_application.reload.glucose_level).to eq(params[:glucose_level])
       end
 
       it 'updates the insulin application attributes' do
-        put "/api/v1/insulin_applications/#{insulin_application.id}", params: params, headers: { 'Authorization ' => "Bearer #{token}" }
+        put "/api/v1/insulin_applications/#{insulin_application.id}", params: params, headers: { 'Authorization' => "Bearer #{token}" }
         expect(insulin_application.reload.application_time).to eq(params[:application_time])
         expect(insulin_application.reload.insulin_units).to eq(params[:insulin_units])
         expect(insulin_application.reload.glucose_level).to eq(params[:glucose_level])
@@ -350,21 +351,21 @@ describe Pets::InsulinApplicationAPI, type: :request do
         end
 
         it 'returns the insulin application' do
-          put "/api/v1/insulin_applications/#{insulin_application.id}", params: params, headers: { 'Authorization ' => "Bearer #{token}" }
+          put "/api/v1/insulin_applications/#{insulin_application.id}", params: params, headers: { 'Authorization' => "Bearer #{token}" }
           expect(response).to have_http_status(:ok)
           body = JSON.parse(response.body)
           expect(body["id"]).to eq(insulin_application.id)
         end
 
         it 'updates the insulin application' do
-          put "/api/v1/insulin_applications/#{insulin_application.id}", params: params, headers: { 'Authorization ' => "Bearer #{token}" }
+          put "/api/v1/insulin_applications/#{insulin_application.id}", params: params, headers: { 'Authorization' => "Bearer #{token}" }
           expect(insulin_application.reload.application_time).to eq(params[:application_time])
           expect(insulin_application.reload.insulin_units).to eq(params[:insulin_units])
           expect(insulin_application.reload.glucose_level).to eq(params[:glucose_level])
         end
 
         it 'updates the insulin application attributes' do
-          put "/api/v1/insulin_applications/#{insulin_application.id}", params: params, headers: { 'Authorization ' => "Bearer #{token}" }
+          put "/api/v1/insulin_applications/#{insulin_application.id}", params: params, headers: { 'Authorization' => "Bearer #{token}" }
           expect(insulin_application.reload.application_time).to eq(params[:application_time])
           expect(insulin_application.reload.insulin_units).to eq(params[:insulin_units])
           expect(insulin_application.reload.glucose_level).to eq(params[:glucose_level])
