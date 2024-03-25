@@ -373,4 +373,82 @@ describe Pets::InsulinApplicationAPI, type: :request do
       end
     end
   end
+
+  context 'DELETE /insulin_applications/:insulin_application_id' do
+    let!(:insulin_application) { create(:insulin_application, pet: pet) }
+
+    context 'when user is not authenticated' do
+      it 'returns unauthorized' do
+        delete "/api/v1/insulin_applications/#{insulin_application.id}"
+        expect(response).to have_http_status(:unauthorized)
+      end
+
+      it 'does not delete the insulin application' do
+        expect { delete "/api/v1/insulin_applications/#{insulin_application.id}" }.not_to change { InsulinApplication.count }
+      end
+    end
+
+    context 'when the insulin application does not exist' do
+      it 'returns not found' do
+        delete "/api/v1/insulin_applications/0", headers: { 'Authorization' => "Bearer #{token}" }
+        expect(response).to have_http_status(:not_found)
+      end
+
+      it 'does not delete the insulin application' do
+        expect { delete "/api/v1/insulin_applications/0", headers: { 'Authorization' => "Bearer #{token}" } }.not_to change { InsulinApplication.count }
+      end
+    end
+
+    context 'when the user is not the pet owner' do
+      before do
+        PetOwner.where(owner_id: user.id, pet_id: pet.id).destroy_all
+      end
+
+      it 'returns unauthorized' do
+        delete "/api/v1/insulin_applications/#{insulin_application.id}", headers: { 'Authorization' => "Bearer #{token}" }
+        expect(response).to have_http_status(:unauthorized)
+      end
+
+      it 'does not delete the insulin application' do
+        expect { delete "/api/v1/insulin_applications/#{insulin_application.id}", headers: { 'Authorization' => "Bearer #{token}" } }.not_to change { InsulinApplication.count }
+      end
+    end
+
+    context 'when the insulin application exists' do
+      it 'returns ok' do
+        delete "/api/v1/insulin_applications/#{insulin_application.id}", headers: { 'Authorization' => "Bearer #{token}" }
+        expect(response).to have_http_status(:ok)
+      end
+
+      it 'deletes the insulin application' do
+        expect { delete "/api/v1/insulin_applications/#{insulin_application.id}", headers: { 'Authorization' => "Bearer #{token}" } }.to change { InsulinApplication.count }.by(-1)
+      end
+
+      context 'when the user is a caretaker' do
+        before do
+          PetOwner.where(owner_id: user.id, pet_id: pet.id).update(ownership_level: 'CARETAKER')
+        end
+
+        it 'returns ok' do
+          delete "/api/v1/insulin_applications/#{insulin_application.id}", headers: { 'Authorization' => "Bearer #{token}" }
+          expect(response).to have_http_status(:ok)
+        end
+
+        it 'deletes the insulin application' do
+          expect { delete "/api/v1/insulin_applications/#{insulin_application.id}", headers: { 'Authorization' => "Bearer #{token}" } }.to change { InsulinApplication.count }.by(-1)
+        end
+      end
+
+      context 'when the user is an owner' do
+        it 'returns ok' do
+          delete "/api/v1/insulin_applications/#{insulin_application.id}", headers: { 'Authorization' => "Bearer #{token}" }
+          expect(response).to have_http_status(:ok)
+        end
+
+        it 'deletes the insulin application' do
+          expect { delete "/api/v1/insulin_applications/#{insulin_application.id}", headers: { 'Authorization' => "Bearer #{token}" } }.to change { InsulinApplication.count }.by(-1)
+        end
+      end
+    end
+  end
 end

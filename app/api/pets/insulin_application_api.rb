@@ -56,6 +56,13 @@ module Pets
 
           present insulin_application, with: Entities::InsulinApplicationEntity
         end
+
+        desc 'Delete the pet insulin application'
+        delete '' do
+          user_authenticate!
+          InsulinApplications::Delete.call(decoded_token, params)
+          status :ok
+        end
       end
     end
   end
