@@ -41,6 +41,20 @@ module Pets
 
           present insulin_application, with: Entities::InsulinApplicationEntity
         end
+
+        desc 'Update the pet insulin application'
+        params do
+          requires :application_time, type: DateTime, desc: 'The time of the insulin application'
+          requires :insulin_units, type: Integer, desc: 'The insulin units of the insulin application'
+          requires :glucose_level, type: Integer, desc: 'The glucose level of the insulin application'
+          requires :user_id, type: Integer, desc: 'The user id of the insulin application'
+        end
+        put '' do
+          user_authenticate!
+          insulin_application = InsulinApplications::Update.call(decoded_token, params).result
+
+          present insulin_application, with: Entities::InsulinApplicationEntity
+        end
       end
     end
   end

@@ -398,11 +398,6 @@
               </RakeTaskImpl>
             </subtasks>
           </RakeTaskImpl>
-          <RakeTaskImpl id="brick">
-            <subtasks>
-              <RakeTaskImpl description="Find any seemingly-orphaned records" fullCommand="brick:orphans" id="orphans" />
-            </subtasks>
-          </RakeTaskImpl>
           <RakeTaskImpl id="db">
             <subtasks>
               <RakeTaskImpl description="Create the database from DATABASE_URL or config/database.yml for the current RAILS_ENV (use db:create:all to create all databases in the config). Without RAILS_ENV or when RAILS_ENV is development, it defaults to creating the development and test databases, except when DATABASE_URL is present" fullCommand="db:create" id="create" />
@@ -498,6 +493,11 @@
                 </subtasks>
               </RakeTaskImpl>
               <RakeTaskImpl description="" fullCommand="db:truncate_all" id="truncate_all" />
+            </subtasks>
+          </RakeTaskImpl>
+          <RakeTaskImpl id="grape">
+            <subtasks>
+              <RakeTaskImpl description="show API routes" fullCommand="grape:routes" id="routes" />
             </subtasks>
           </RakeTaskImpl>
           <RakeTaskImpl id="insulins">

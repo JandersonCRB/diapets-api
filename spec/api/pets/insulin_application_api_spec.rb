@@ -80,7 +80,7 @@ describe Pets::InsulinApplicationAPI, type: :request do
         expect(response).to have_http_status(:ok)
         body = JSON.parse(response.body)
         expect(body).to eq([])
-        end
+      end
     end
 
     context 'when there are many insulin applications for the pet' do
@@ -120,7 +120,7 @@ describe Pets::InsulinApplicationAPI, type: :request do
     context 'when the user does not have permission to access the pet' do
       let(:other_pet) { create(:pet) }
       it 'returns unauthorized' do
-        get "/api/v1/pets/#{other_pet.id}/insulin_applications/filters", headers: { 'Authorization'=> "Bearer #{token}" }
+        get "/api/v1/pets/#{other_pet.id}/insulin_applications/filters", headers: { 'Authorization' => "Bearer #{token}" }
         expect(response).to have_http_status(:unauthorized)
       end
     end
@@ -145,13 +145,13 @@ describe Pets::InsulinApplicationAPI, type: :request do
         expect(response).to have_http_status(:ok)
         body = JSON.parse(response.body)
         expect(body).to eq(
-          'min_date' => insulin_application.application_time.as_json,
-          'max_date' => insulin_application2.application_time.as_json,
-          'min_units' => insulin_application.insulin_units,
-          'max_units' => insulin_application2.insulin_units,
-          'min_glucose' => insulin_application.glucose_level,
-          'max_glucose' => insulin_application2.glucose_level
-        )
+                          'min_date' => insulin_application.application_time.as_json,
+                          'max_date' => insulin_application2.application_time.as_json,
+                          'min_units' => insulin_application.insulin_units,
+                          'max_units' => insulin_application2.insulin_units,
+                          'min_glucose' => insulin_application.glucose_level,
+                          'max_glucose' => insulin_application2.glucose_level
+                        )
       end
     end
 
@@ -176,13 +176,13 @@ describe Pets::InsulinApplicationAPI, type: :request do
         expect(response).to have_http_status(:ok)
         body = JSON.parse(response.body)
         expect(body).to eq(
-          'min_date' => insulin_application.application_time.as_json,
-          'max_date' => insulin_application2.application_time.as_json,
-          'min_units' => insulin_application.insulin_units,
-          'max_units' => insulin_application2.insulin_units,
-          'min_glucose' => insulin_application.glucose_level,
-          'max_glucose' => insulin_application2.glucose_level
-        )
+                          'min_date' => insulin_application.application_time.as_json,
+                          'max_date' => insulin_application2.application_time.as_json,
+                          'min_units' => insulin_application.insulin_units,
+                          'max_units' => insulin_application2.insulin_units,
+                          'min_glucose' => insulin_application.glucose_level,
+                          'max_glucose' => insulin_application2.glucose_level
+                        )
       end
     end
 
@@ -248,6 +248,127 @@ describe Pets::InsulinApplicationAPI, type: :request do
         expect(response).to have_http_status(:ok)
         body = JSON.parse(response.body)
         expect(body["id"]).to eq(insulin_application.id)
+      end
+    end
+  end
+
+  context 'PUT /insulin_applications/:insulin_application_id' do
+    let!(:insulin_application) { create(:insulin_application, pet: pet, user: user) }
+    let!(:params) {
+      {
+        application_time: insulin_application.application_time + 1.day,
+        insulin_units: insulin_application.insulin_units + 1,
+        glucose_level: insulin_application.glucose_level + 1
+      }
+    }
+
+    context 'when user is not authenticated' do
+      it 'returns unauthorized' do
+        put "/api/v1/insulin_applications/#{insulin_application.id}", params: params
+        expect(response).to have_http_status(:unauthorized)
+      end
+
+      it 'does not update the insulin application' do
+        expect { put "/api/v1/insulin_applications/#{insulin_application.id}", params: params }.not_to change { insulin_application.reload.updated_at }
+      end
+
+      it 'does not update the insulin application attributes' do
+        put "/api/v1/insulin_applications/#{insulin_application.id}", params: params
+        expect(insulin_application.reload.application_time).not_to eq(params[:application_time])
+        expect(insulin_application.reload.insulin_units).not_to eq(params[:insulin_units])
+        expect(insulin_application.reload.glucose_level).not_to eq(params[:glucose_level])
+      end
+    end
+
+    context 'when the insulin application does not exist' do
+      it 'returns not found' do
+        put "/api/v1/insulin_applications/0", params: params, headers: { 'Authorization' => "Bearer #{token}" }
+        expect(response).to have_http_status(:not_found)
+      end
+
+      it 'does not update the insulin application' do
+        expect { put "/api/v1/insulin_applications/0", params: params, headers: { 'Authorization ' => "Bearer #{token}" } }.not_to change { insulin_application.reload.updated_at }
+      end
+
+      it 'does not update the insulin application attributes' do
+        put "/api/v1/insulin_applications/0", params: params, headers: { 'Authorization ' => "Bearer #{token}" }
+        expect(insulin_application.reload.application_time).not_to eq(params[:application_time])
+        expect(insulin_application.reload.insulin_units).not_to eq(params[:insulin_units])
+        expect(insulin_application.reload.glucose_level).not_to eq(params[:glucose_level])
+      end
+    end
+
+    context 'when the user is not the pet owner' do
+      before do
+        PetOwner.where(owner_id: user.id, pet_id: pet.id).destroy_all
+      end
+
+      it 'returns unauthorized' do
+        put "/api/v1/insulin_applications/#{insulin_application.id}", params: params, headers: { 'Authorization' => "Bearer #{token}" }
+        expect(response).to have_http_status(:unauthorized)
+      end
+
+      it 'does not update the insulin application' do
+        expect do
+          put "/api/v1/insulin_applications/#{insulin_application.id}", params: params, headers: { 'Authorization' => "Bearer #{token}" }
+        end.not_to change { insulin_application.reload.updated_at }
+      end
+
+      it 'does not update the insulin application attributes' do
+        put "/api/v1/insulin_applications/#{insulin_application.id}", params: params, headers: { 'Authorization' => "Bearer #{token}" }
+        expect(insulin_application.reload.application_time).not_to eq(params[:application_time])
+        expect(insulin_application.reload.insulin_units).not_to eq(params[:insulin_units])
+        expect(insulin_application.reload.glucose_level).not_to eq(params[:glucose_level])
+      end
+    end
+
+    context 'when the insulin application exists' do
+      it 'returns the insulin application' do
+        put "/api/v1/insulin_applications/#{insulin_application.id}", params: params, headers: { 'Authorization ' => "Bearer #{token}" }
+        expect(response).to have_http_status(:ok)
+        body = JSON.parse(response.body)
+        expect(body["id"]).to eq(insulin_application.id)
+      end
+
+      it 'updates the insulin application' do
+        put "/api/v1/insulin_applications/#{insulin_application.id}", params: params, headers: { 'Authorization ' => "Bearer #{token}" }
+        expect(insulin_application.reload.application_time).to eq(params[:application_time])
+        expect(insulin_application.reload.insulin_units).to eq(params[:insulin_units])
+        expect(insulin_application.reload.glucose_level).to eq(params[:glucose_level])
+      end
+
+      it 'updates the insulin application attributes' do
+        put "/api/v1/insulin_applications/#{insulin_application.id}", params: params, headers: { 'Authorization ' => "Bearer #{token}" }
+        expect(insulin_application.reload.application_time).to eq(params[:application_time])
+        expect(insulin_application.reload.insulin_units).to eq(params[:insulin_units])
+        expect(insulin_application.reload.glucose_level).to eq(params[:glucose_level])
+      end
+
+      context 'when the user is a caretaker' do
+        before do
+          PetOwner.where(owner_id: user.id, pet_id: pet.id).update(ownership_level: 'CARETAKER')
+        end
+
+        it 'returns the insulin application' do
+          put "/api/v1/insulin_applications/#{insulin_application.id}", params: params, headers: { 'Authorization ' => "Bearer #{token}" }
+          expect(response).to have_http_status(:ok)
+          body = JSON.parse(response.body)
+          expect(body["id"]).to eq(insulin_application.id)
+        end
+
+        it 'updates the insulin application' do
+          put "/api/v1/insulin_applications/#{insulin_application.id}", params: params, headers: { 'Authorization ' => "Bearer #{token}" }
+          expect(insulin_application.reload.application_time).to eq(params[:application_time])
+          expect(insulin_application.reload.insulin_units).to eq(params[:insulin_units])
+          expect(insulin_application.reload.glucose_level).to eq(params[:glucose_level])
+        end
+
+        it 'updates the insulin application attributes' do
+          put "/api/v1/insulin_applications/#{insulin_application.id}", params: params, headers: { 'Authorization ' => "Bearer #{token}" }
+          expect(insulin_application.reload.application_time).to eq(params[:application_time])
+          expect(insulin_application.reload.insulin_units).to eq(params[:insulin_units])
+          expect(insulin_application.reload.glucose_level).to eq(params[:glucose_level])
+        end
       end
     end
   end
