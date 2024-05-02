@@ -13,10 +13,37 @@ module Pets
       validate_pet_existence(pet_id)
       validate_pet_permission(@decoded_token[:user_id], pet_id)
       validate_pet_permission(@params[:responsible_id], pet_id)
-      register_insulin
+      insulin_application = register_insulin
+      notify_pet_owners(pet_id, insulin_application)
+      insulin_application
     end
 
     private
+
+    def notify_pet_owners(pet_id, insulin_application)
+      pets = Pet.select(:id, :name)
+               .includes(owners: :push_tokens)
+               .where(id: pet_id)
+
+      if pets.empty?
+        Rails.logger.info("No pets found while notifying pet owners of insulin registration")
+        return
+      end
+      pets.each do |pet|
+        push_tokens = []
+        pet.owners.each do |owner|
+          owner.push_tokens.each do |push_token|
+            push_tokens << push_token.token
+          end
+        end
+
+        PushNotifications::NotifyUsers.call(
+          push_tokens,
+          "#{pet.name}: Insulina registrada!",
+          "#{responsible.first_name} acabou de registrar uma aplicação de insulina"
+        )
+      end
+    end
 
     def register_insulin
       InsulinApplication.create!(
@@ -43,6 +70,10 @@ module Pets
 
     def pet_id
       @params[:pet_id]
+    end
+
+    def responsible
+      @responsible ||= User.find(@params[:responsible_id])
     end
   end
 end

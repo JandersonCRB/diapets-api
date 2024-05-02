@@ -1,6 +1,9 @@
 require 'rails_helper'
 
 describe Pets::RegisterInsulin, type: :service do
+  before do
+    allow(PushNotifications::NotifyUsers).to receive(:call).and_return(true)
+  end
   let!(:user) { create(:user) }
   let!(:decoded_token) { { user_id: user.id } }
   let!(:pet) {
@@ -22,6 +25,10 @@ describe Pets::RegisterInsulin, type: :service do
   end
 
   context 'when the user has permission to register insulin' do
+    before do
+      PushToken.create(user: user, token: '123token')
+    end
+
     it 'creates a new insulin application' do
       expect do
         described_class.call(decoded_token, params)
@@ -31,6 +38,25 @@ describe Pets::RegisterInsulin, type: :service do
     it 'returns the created insulin instance' do
       result = described_class.call(decoded_token, params).result
       expect(result).to be_a(InsulinApplication)
+    end
+
+    it 'does not raise error' do
+      expect do
+        described_class.call(decoded_token, params)
+      end.not_to raise_error
+    end
+
+    it 'calls NotifyUsers' do
+      described_class.call(decoded_token, params)
+      expect(PushNotifications::NotifyUsers).to have_received(:call).once
+    end
+
+    it 'calls NotifyUsers with the correct arguments' do
+      described_class.call(decoded_token, params)
+      expect(PushNotifications::NotifyUsers).to have_received(:call)
+                                                  .with([user.push_tokens.first.token],
+                                                        "#{pet.name}: Insulina registrada!",
+                                                        "#{user.first_name} acabou de registrar uma aplicação de insulina")
     end
 
     context 'when the user ownership is CARETAKER' do
