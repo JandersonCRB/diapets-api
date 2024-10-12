@@ -46,8 +46,8 @@ module Pets
         params do
           requires :application_time, type: DateTime, desc: 'The time of the insulin application'
           requires :insulin_units, type: Integer, desc: 'The insulin units of the insulin application'
-          requires :glucose_level, type: Integer, desc: 'The glucose level of the insulin application'
           requires :responsible_id, type: Integer, desc: 'The user id of the insulin application'
+          optional :glucose_level, type: Integer, desc: 'The glucose level of the insulin application'
           optional :observations, type: String, desc: 'The observations of the insulin application'
         end
         put '' do
