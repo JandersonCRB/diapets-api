@@ -1,5 +1,5 @@
 module Entities
-  class LoginEntitiy < Grape::Entity
+  class LoginEntity < Grape::Entity
     expose :token
     expose :user, using: Entities::UserEntity
   end
