@@ -103,6 +103,7 @@ RSpec.describe "Pets API", type: :request do
       {
         glucose_level: 100,
         insulin_units: 2,
+        responsible_id: user.id,
         application_time: "2024-03-13T14:00",
         observations: 'Some observations'
       }

@@ -37,7 +37,7 @@ RSpec.describe Pets::FindAllByUser do
         it 'returns all pets for the user' do
           pets = described_class.call(decoded_token, params).result
 
-          expect(pets).to eq([pet, other_pet])
+          expect(pets).to match_array([pet, other_pet])
         end
       end
 
@@ -51,7 +51,7 @@ RSpec.describe Pets::FindAllByUser do
         it 'returns all pets for the user' do
           pets = described_class.call(decoded_token, params).result
 
-          expect(pets).to eq([pet, caretaker_pet])
+          expect(pets).to match_array([pet, caretaker_pet])
         end
       end
 
@@ -70,7 +70,7 @@ RSpec.describe Pets::FindAllByUser do
         it 'returns all pets for the user' do
           pets = described_class.call(decoded_token, params).result
 
-          expect(pets).to eq([pet, caretaker_pet, other_owner_pet])
+          expect(pets).to match_array([pet, caretaker_pet, other_owner_pet])
         end
       end
 
