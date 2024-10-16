@@ -30,9 +30,6 @@ module Pets
           end
         end
       end
-    end
-
-    namespace :insulin_applications do
       route_param :insulin_application_id do
         desc 'Get the pet insulin application'
         get '' do

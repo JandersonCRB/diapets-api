@@ -239,7 +239,6 @@ RSpec.describe "Pets API", type: :request do
           end
         end
 
-
         context 'when there are many insuline applications for multiple pets' do
           let!(:other_pet) {
             other_pet = create(:pet)
@@ -320,6 +319,102 @@ RSpec.describe "Pets API", type: :request do
       it 'returns 401' do
         get "/api/v1/pets/#{other_pet.id}/dashboard", headers: { 'Authorization' => "Bearer #{token}" }
         expect(response).to have_http_status(:unauthorized)
+      end
+    end
+  end
+
+  context 'POST /api/v1/pets' do
+    let(:params) {
+      {
+        name: 'Rex',
+        species: 'DOG',
+        birthdate: '2020-01-01',
+        insulin_frequency: 12
+      }
+    }
+
+    context 'when name is short' do
+      before do
+        params[:name] = 'R'
+      end
+
+      it 'returns 400' do
+        post '/api/v1/pets', params: params, headers: { 'Authorization ' => "Bearer #{token}" }
+        expect(response).to have_http_status(:bad_request)
+      end
+    end
+
+    context 'when name is too big' do
+      before do
+        params[:name] = 'R' * 51
+      end
+
+      it 'returns 400' do
+        post '/api/v1/pets', params: params, headers: { 'Authorization ' => "Bearer #{token}" }
+        expect(response).to have_http_status(:bad_request)
+      end
+    end
+
+    context 'when species is invalid' do
+      before do
+        params[:species] = 'INVALID_SPECIES'
+      end
+
+      it 'returns 400' do
+        post '/api/v1/pets', params: params, headers: { 'Authorization ' => "Bearer #{token}" }
+        expect(response).to have_http_status(:bad_request)
+      end
+    end
+
+    context 'when birthdate is invalid' do
+      before do
+        params[:birthdate] = 'INVALID_BIRTHDATE'
+      end
+
+      it 'returns 400' do
+        post '/api/v1/pets', params: params, headers: { 'Authorization ' => "Bearer #{token}" }
+        expect(response).to have_http_status(:bad_request)
+      end
+    end
+
+    context 'when birthdate is in the future' do
+      before do
+        params[:birthdate] = Date.today.advance(days: 1).to_s
+      end
+
+      it 'returns 400' do
+        post '/api/v1/pets', params: params, headers: { 'Authorization ' => "Bearer #{token}" }
+      end
+    end
+
+    context 'when insulin_frequency is invalid' do
+      before do
+        params[:insulin_frequency] = 'INVALID_INSULIN_FREQUENCY'
+      end
+
+      it 'returns 400' do
+        post '/api/v1/pets', params: params, headers: { 'Authorization ' => "Bearer #{token}" }
+        expect(response).to have_http_status(:bad_request)
+      end
+    end
+
+    context 'when insulin_frequency is negative' do
+      before do
+        params[:insulin_frequency] = -1
+      end
+
+      it 'returns 400' do
+        post '/api/v1/pets', params: params, headers: { 'Authorization ' => "Bearer #{token}" }
+      end
+    end
+
+    context 'when insulin_frequency is zero' do
+      before do
+        params[:insulin_frequency] = 0
+      end
+
+      it 'returns 400' do
+        post '/api/v1/pets', params: params, headers: { 'Authorization ' => "Bearer #{token}" }
       end
     end
   end

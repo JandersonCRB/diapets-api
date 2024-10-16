@@ -10,6 +10,20 @@ module Pets
         present pets, with: Entities::PetEntity
       end
 
+      desc 'Register pet'
+      params do
+        requires :name, type: String, values: -> (name) { name.length > 1 && name.length < 51 }
+        requires :species, type: String, values: Pet::SPECIES
+        requires :birthdate, type: String, values: ->(birthdate) { Date.parse(birthdate) < Date.today }
+        requires :insulin_frequency, type: Integer, values: (1..24)
+      end
+      post '' do
+        user_authenticate!
+        pet = Pets::Create.call(decoded_token, params).result
+
+        present pet, with: Entities::PetEntity
+      end
+
       route_param :pet_id do
         desc 'Get pet dashboard'
         get '/dashboard' do
