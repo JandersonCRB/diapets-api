@@ -25,10 +25,6 @@ module Pets
                .includes(owners: :push_tokens)
                .where(id: pet_id)
 
-      if pets.empty?
-        Rails.logger.info("No pets found while notifying pet owners of insulin registration")
-        return
-      end
       pets.each do |pet|
         push_tokens = []
         pet.owners.each do |owner|
