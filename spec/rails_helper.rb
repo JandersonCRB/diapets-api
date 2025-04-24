@@ -36,6 +36,19 @@ rescue ActiveRecord::PendingMigrationError => e
 end
 RSpec.configure do |config|
   SimpleCov.start 'rails'
+
+  SimpleCov.configure do
+    add_filter 'spec'
+    add_filter 'config'
+    add_filter 'vendor'
+    add_filter 'lib'
+    add_filter 'app/channels'
+    add_filter 'app/jobs'
+    add_filter 'app/mailers'
+    add_filter 'app/models'
+    add_filter 'app/controllers'
+    add_filter 'app/errors'
+  end
   # Remove this line if you're not using ActiveRecord or ActiveRecord fixtures
   config.fixture_paths = [
     Rails.root.join('spec/fixtures')
