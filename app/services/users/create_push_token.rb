@@ -8,14 +8,13 @@ module Users
     end
 
     def call
-      user = User.find(@decoded_token[:user_id])
       create_push_token(user)
     end
 
     private
 
-    def find_user
-      User.find(@decoded_token[:user_id])
+    def user
+      @user ||= User.find(@decoded_token[:user_id])
     end
 
     def create_push_token(user)
