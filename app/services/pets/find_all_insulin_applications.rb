@@ -64,13 +64,5 @@ module Pets
     def max_glucose
       @params[:max_glucose]
     end
-
-    def page
-      @params[:page]
-    end
-
-    def per_page
-      @params[:per_page]
-    end
   end
 end
