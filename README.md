@@ -85,7 +85,7 @@ graph TD
 - **Testing**: RSpec with FactoryBot and SimpleCov
 - **Code Quality**: Rubocop with Rails and RSpec extensions
 - **External Communications**: Firebase Cloud Messaging (FCM) for push notifications
-- **CI/CD**: Heroku CI/CD pipeline with automated testing and deployment
+- **CI/CD**: Heroku CI/CD pipeline with automated deployment
 - **Monitoring**: Scout APM and Rollbar
 - **Deployment**: Docker with multi-stage builds OR running puma directly on Heroku
 
