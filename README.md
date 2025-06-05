@@ -18,40 +18,29 @@ DiaPets follows a clean service-oriented architecture built on Ruby on Rails wit
 
 ### Core Components
 
-```
-┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
-│   Mobile App    │    │    Web Client    │    │  Push Notifs   │
-│   (Client)      │    │    (Client)      │    │   (Firebase)   │
-└─────────┬───────┘    └─────────┬────────┘    └─────────┬───────┘
-          │                      │                       │
-          └──────────────────────┼───────────────────────┘
-                                 │
-                    ┌────────────▼─────────────┐
-                    │      Grape API           │
-                    │   (REST Endpoints)       │
-                    │  /api/v1/pets/*         │
-                    │  /api/v1/auth/*         │
-                    │  /api/v1/users/*        │
-                    └────────────┬─────────────┘
-                                 │
-                    ┌────────────▼─────────────┐
-                    │    Service Layer         │
-                    │  - Auth Services         │
-                    │  - Pet Services          │
-                    │  - Notification Services │
-                    └────────────┬─────────────┘
-                                 │
-                    ┌────────────▼─────────────┐
-                    │    Data Models           │
-                    │  - User                  │
-                    │  - Pet                   │
-                    │  - InsulinApplication    │
-                    │  - PushToken             │
-                    └────────────┬─────────────┘
-                                 │
-                    ┌────────────▼─────────────┐
-                    │   PostgreSQL Database    │
-                    └──────────────────────────┘
+```mermaid
+graph TD
+    A[Mobile App] --> D[Grape API]
+    B[Web Client] --> D
+    D --> E[Service Layer]
+    E --> F[Data Models]
+    F --> G[PostgreSQL Database]
+    
+    H[Heroku Scheduler] -->|Every 10 minutes| I[Check Notifications Job]
+    I --> P
+    P --> J[Firebase Push Notifications]
+    J -->|Push to| A
+    J -->|Push to| B
+    
+    D --> K["/api/v1/auth/*<br/>- Login<br/>- Signup"]
+    D --> L["/api/v1/pets/*<br/>- CRUD Operations<br/>- Dashboard<br/>- Insulin Applications"]
+    D --> M["/api/v1/users/*<br/>- Push Token Registration"]
+    
+    E --> N["Auth Services<br/>- JWT Authentication<br/>- User Authorization"]
+    E --> O["Pet Services<br/>- Pet Management<br/>- Insulin Tracking"]
+    E --> P["Notification Services<br/>- FCM Integration<br/>- Background Jobs"]
+    
+    F --> Q["User<br/>Pet<br/>InsulinApplication<br/>PushToken"]
 ```
 
 ### Key Features
