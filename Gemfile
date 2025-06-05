@@ -44,6 +44,9 @@ end
 
 group :development do
   gem 'grape_on_rails_routes', '~> 0.3.2'
+  gem "rubocop", "~> 1.76", require: false
+  gem "rubocop-rails", "~> 2.32", require: false
+  gem 'rubocop-rspec', '~> 3.6', require: false
   # Speed up commands on slow machines / big apps [https://github.com/rails/spring]
   # gem "spring"
 end

@@ -1,0 +1,21 @@
+require:
+  - rubocop-rails
+  - rubocop-rspec
+
+AllCops:
+  Exclude:
+    - 'spec/**/*'
+    - 'test/**/*'
+    - 'db/**/*'
+    - 'config/**/*'
+    - 'bin/**/*'
+    - 'vendor/**/*'
+    - 'tmp/**/*'
+    - 'log/**/*'
+    - 'public/**/*'
+    - 'storage/**/*'
+    - 'coverage/**/*'
+    - 'node_modules/**/*'
+    - 'Gemfile'
+    - 'Rakefile'
+    - 'config.ru'
