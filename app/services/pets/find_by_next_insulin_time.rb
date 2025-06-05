@@ -19,7 +19,7 @@ module Pets
       
       pets = find_pet
       
-      Rails.logger.info("Found #{pets.count} pets needing insulin")
+      Rails.logger.info("Found #{pets.size} pets needing insulin")
       pets
     end
 
