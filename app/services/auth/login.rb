@@ -80,18 +80,18 @@ module Auth
     # @return [User] The found user record
     # @raise [Exceptions::NotFoundError] If no user exists with the given email
     def find_user
-      Rails.logger.debug "Searching for user with email: #{@params[:email]}"
+      Rails.logger.debug { "Searching for user with email: #{@params[:email]}" }
 
       # Look up user by email address
       user = User.find_by(email: @params[:email])
 
       # Validate that user exists
       if user.nil?
-        Rails.logger.debug "No user found with email: #{@params[:email]}"
+        Rails.logger.debug { "No user found with email: #{@params[:email]}" }
         raise Exceptions::NotFoundError
       end
 
-      Rails.logger.debug "User found: #{user.first_name} #{user.last_name} (ID: #{user.id})"
+      Rails.logger.debug { "User found: #{user.first_name} #{user.last_name} (ID: #{user.id})" }
       user
     end
 
@@ -100,18 +100,18 @@ module Auth
     # @param user [User] The user record to validate password against
     # @raise [Exceptions::InvalidCredentialsError] If password verification fails
     def validate_password(user)
-      Rails.logger.debug "Validating password for user: #{user.email}"
+      Rails.logger.debug { "Validating password for user: #{user.email}" }
 
       # Authenticate the password using Rails' secure comparison
       authentication_result = user.authenticate(@params[:password])
 
       # Check if authentication failed
       if authentication_result == false
-        Rails.logger.debug "Password validation failed for user: #{user.email}"
+        Rails.logger.debug { "Password validation failed for user: #{user.email}" }
         raise Exceptions::InvalidCredentialsError
       end
 
-      Rails.logger.debug "Password validation successful for user: #{user.email}"
+      Rails.logger.debug { "Password validation successful for user: #{user.email}" }
     end
 
     # Handle authentication-related errors (not found, invalid credentials)

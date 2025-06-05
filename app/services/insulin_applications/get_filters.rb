@@ -41,7 +41,7 @@ module InsulinApplications
     # @param pet_id [String, Integer] The pet ID to check
     # @raise [Exceptions::NotFoundError] If no insulin applications exist for the pet
     def validate_insulin_application_existence(pet_id)
-      Rails.logger.debug "Checking for insulin application existence for pet ID: #{pet_id}"
+      Rails.logger.debug { "Checking for insulin application existence for pet ID: #{pet_id}" }
 
       return if InsulinApplication.exists?(pet_id: pet_id)
 
@@ -53,7 +53,7 @@ module InsulinApplications
     # Uses aggregate functions to determine boundaries for filtering
     # @return [Hash] Hash containing min/max values for dates, units, and glucose levels
     def filters
-      Rails.logger.debug "Calculating filter ranges for pet ID: #{pet_id}"
+      Rails.logger.debug { "Calculating filter ranges for pet ID: #{pet_id}" }
 
       # Execute aggregation query to get min/max values for all relevant fields
       insulin_application = build_filter_query
@@ -95,8 +95,10 @@ module InsulinApplications
     def log_raw_filter_data(insulin_application)
       min_date = insulin_application.min_date
       max_date = insulin_application.max_date
-      Rails.logger.debug "Raw filter data retrieved for pet #{pet_id}: " \
-                         "min_date=#{min_date}, max_date=#{max_date}"
+      Rails.logger.debug do
+        "Raw filter data retrieved for pet #{pet_id}: " \
+          "min_date=#{min_date}, max_date=#{max_date}"
+      end
     end
 
     # Build the structured filter response hash
@@ -122,14 +124,14 @@ module InsulinApplications
     # Perform all required validations
     def perform_validations
       validate_pet_existence(pet_id)
-      Rails.logger.debug "Validated pet existence for pet ID: #{pet_id}"
+      Rails.logger.debug { "Validated pet existence for pet ID: #{pet_id}" }
 
       user_id = @decoded_token[:user_id]
       validate_pet_permission(user_id, pet_id)
       Rails.logger.info "Authorization validated for user #{user_id} to access pet #{pet_id} data"
 
       validate_insulin_application_existence(pet_id)
-      Rails.logger.debug "Validated insulin application existence for pet ID: #{pet_id}"
+      Rails.logger.debug { "Validated insulin application existence for pet ID: #{pet_id}" }
     end
 
     # Calculate filter ranges
@@ -142,7 +144,7 @@ module InsulinApplications
     # @param filter_results [Hash] The calculated filter results
     def log_filter_success(filter_results)
       Rails.logger.info "Successfully calculated filters for pet ID: #{pet_id}"
-      Rails.logger.debug "Filter results: #{filter_results}"
+      Rails.logger.debug { "Filter results: #{filter_results}" }
     end
 
     # Handle filter calculation errors

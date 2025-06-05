@@ -8,6 +8,7 @@ module Exceptions
     attr_reader :status, :message, :code, :detailed_code
 
     def initialize(code, message, status = 500, detailed_code: nil)
+      super(message)
       @code = code
       @message = message
       @status = status

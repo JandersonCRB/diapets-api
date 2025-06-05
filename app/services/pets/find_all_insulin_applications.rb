@@ -48,31 +48,46 @@ module Pets
     def filters
       Rails.logger.debug('Building filter conditions for insulin applications')
 
-      filter_hash = {
-        pet_id: pet_id
-      }
+      filter_hash = { pet_id: pet_id }
+      add_range_filters(filter_hash)
 
-      # Add date range filter if min or max date is provided
-      filter_hash[:application_time] = min_date..max_date if min_date || max_date
-
-      # Add insulin units range filter if min or max units is provided
-      filter_hash[:insulin_units] = min_units..max_units if min_units || max_units
-
-      # Add glucose level range filter if min or max glucose is provided
-      filter_hash[:glucose_level] = min_glucose..max_glucose if min_glucose || max_glucose
-
-      Rails.logger.debug("Filter conditions: #{filter_hash}")
+      Rails.logger.debug { "Filter conditions: #{filter_hash}" }
       filter_hash
+    end
+
+    # Adds range filters to the filter hash
+    def add_range_filters(filter_hash)
+      filter_hash[:application_time] = min_date..max_date if min_date || max_date
+      filter_hash[:insulin_units] = min_units..max_units if min_units || max_units
+      filter_hash[:glucose_level] = min_glucose..max_glucose if min_glucose || max_glucose
     end
 
     # Creates a summary of applied filters for logging purposes
     # @return [String] Human-readable filter summary
     def filter_summary
-      filters = []
-      filters << "date: #{min_date}..#{max_date}" if min_date || max_date
-      filters << "units: #{min_units}..#{max_units}" if min_units || max_units
-      filters << "glucose: #{min_glucose}..#{max_glucose}" if min_glucose || max_glucose
-      filters.empty? ? 'none' : filters.join(', ')
+      filter_descriptions = build_filter_descriptions
+      filter_descriptions.empty? ? 'none' : filter_descriptions.join(', ')
+    end
+
+    # Builds array of filter descriptions
+    def build_filter_descriptions
+      descriptions = []
+      descriptions << date_filter_description if min_date || max_date
+      descriptions << units_filter_description if min_units || max_units
+      descriptions << glucose_filter_description if min_glucose || max_glucose
+      descriptions
+    end
+
+    def date_filter_description
+      "date: #{min_date}..#{max_date}"
+    end
+
+    def units_filter_description
+      "units: #{min_units}..#{max_units}"
+    end
+
+    def glucose_filter_description
+      "glucose: #{min_glucose}..#{max_glucose}"
     end
 
     # Extracts pet_id from request parameters

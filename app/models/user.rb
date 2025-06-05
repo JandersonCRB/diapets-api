@@ -4,8 +4,8 @@
 # Users can have multiple pets through ownership relationships and receive
 # push notifications on their registered devices about pet care reminders.
 class User < ApplicationRecord
-  has_many :push_tokens
-  has_many :pet_owners, foreign_key: :owner_id
+  has_many :push_tokens, dependent: :destroy
+  has_many :pet_owners, foreign_key: :owner_id, dependent: :destroy, inverse_of: :owner
   has_many :pets, through: :pet_owners
 
   validates :first_name, presence: true

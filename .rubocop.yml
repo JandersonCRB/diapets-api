@@ -3,6 +3,7 @@ plugins:
   - rubocop-rspec
 
 AllCops:
+  NewCops: enable
   Exclude:
     - 'spec/**/*'
     - 'test/**/*'
@@ -19,3 +20,11 @@ AllCops:
     - 'Gemfile'
     - 'Rakefile'
     - 'config.ru'
+
+Metrics/ClassLength:
+  Exclude:
+    - 'app/services/**/*'
+
+Metrics/BlockLength:
+  Exclude:
+    - 'app/api/**/*'

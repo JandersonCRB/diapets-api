@@ -41,9 +41,9 @@ module InsulinApplications
     # @return [InsulinApplication] The found insulin application record
     # @raise [Exceptions::NotFoundError] If insulin application is not found
     def find_insulin_application
-      Rails.logger.debug "Searching for insulin application with ID: #{insulin_application_id}"
+      Rails.logger.debug { "Searching for insulin application with ID: #{insulin_application_id}" }
 
-      InsulinApplication.find_by!(id: insulin_application_id)
+      InsulinApplication.find(insulin_application_id)
     rescue ActiveRecord::RecordNotFound
       Rails.logger.warn "Insulin application not found with ID: #{insulin_application_id}"
       raise Exceptions::NotFoundError, 'Insulin application not found'
@@ -74,7 +74,7 @@ module InsulinApplications
     def authorize_access(insulin_application)
       pet_id = insulin_application.pet_id
       validate_pet_existence(pet_id)
-      Rails.logger.debug "Validated pet existence for pet ID: #{pet_id}"
+      Rails.logger.debug { "Validated pet existence for pet ID: #{pet_id}" }
 
       validate_pet_permission(user_id, pet_id)
       Rails.logger.info "Authorization validated for user #{user_id} to access " \

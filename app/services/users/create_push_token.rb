@@ -13,8 +13,8 @@ module Users
     # @param params [Hash] Request parameters containing the push token
     def initialize(decoded_token, params)
       Rails.logger.info('Initializing CreatePushToken service')
-      Rails.logger.debug("Decoded token user_id: #{decoded_token[:user_id]}")
-      Rails.logger.debug("Push token to register: #{params[:token]&.slice(0, 10)}...")
+      Rails.logger.debug { "Decoded token user_id: #{decoded_token[:user_id]}" }
+      Rails.logger.debug { "Push token to register: #{params[:token]&.slice(0, 10)}..." }
 
       @decoded_token = decoded_token
       @params = params
@@ -36,7 +36,7 @@ module Users
     # Uses memoization to avoid multiple database queries
     # @return [User] The user associated with the decoded token
     def user
-      Rails.logger.debug("Looking up user with ID: #{@decoded_token[:user_id]}")
+      Rails.logger.debug { "Looking up user with ID: #{@decoded_token[:user_id]}" }
 
       @user ||= begin
         found_user = User.find(@decoded_token[:user_id])
@@ -68,7 +68,7 @@ module Users
     # @param user [User] The user for whom the token is being created
     def log_push_token_creation_start(user)
       Rails.logger.info("Creating/finding push token for user: #{user.id}")
-      Rails.logger.debug("Token value: #{@params[:token]&.slice(0, 10)}...")
+      Rails.logger.debug { "Token value: #{@params[:token]&.slice(0, 10)}..." }
     end
 
     # Handle push token creation errors
@@ -103,7 +103,7 @@ module Users
         Rails.logger.info("Successfully created new push token for user: #{user.id}")
       end
 
-      Rails.logger.debug("Push token ID: #{push_token.id}")
+      Rails.logger.debug { "Push token ID: #{push_token.id}" }
     end
 
     # Logs success message and returns the result

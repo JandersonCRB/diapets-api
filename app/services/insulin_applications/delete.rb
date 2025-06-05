@@ -51,9 +51,9 @@ module InsulinApplications
     # @return [InsulinApplication] The found insulin application record
     # @raise [Exceptions::NotFoundError] If insulin application is not found
     def find_insulin_application
-      Rails.logger.debug "Searching for insulin application with ID: #{insulin_application_id}"
+      Rails.logger.debug { "Searching for insulin application with ID: #{insulin_application_id}" }
 
-      InsulinApplication.find_by!(id: insulin_application_id)
+      InsulinApplication.find(insulin_application_id)
     rescue ActiveRecord::RecordNotFound
       Rails.logger.warn "Insulin application not found with ID: #{insulin_application_id}"
       raise Exceptions::NotFoundError, 'Insulin application not found'

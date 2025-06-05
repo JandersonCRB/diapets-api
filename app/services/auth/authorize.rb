@@ -18,7 +18,7 @@ module Auth
 
       # Log token presence (without exposing the actual token)
       if @access_token.present?
-        Rails.logger.debug "Bearer token extracted from Authorization header (length: #{@access_token.length})"
+        Rails.logger.debug { "Bearer token extracted from Authorization header (length: #{@access_token.length})" }
       else
         Rails.logger.warn 'No Bearer token found in Authorization header'
       end
@@ -70,7 +70,7 @@ module Auth
     # @param decoded_result [Hash] The decoded token payload
     def log_success(decoded_result)
       Rails.logger.info 'JWT token successfully decoded and authorized'
-      Rails.logger.debug "Decoded token contains user_id: #{decoded_result[:user_id]}"
+      Rails.logger.debug { "Decoded token contains user_id: #{decoded_result[:user_id]}" }
     end
 
     # Handle token-specific errors

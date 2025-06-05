@@ -14,8 +14,8 @@ module PushNotifications
     # @param body [String] The notification body text
     def initialize(push_tokens, title, body)
       Rails.logger.info("Initializing NotifyUsers service with #{push_tokens.count} tokens")
-      Rails.logger.debug("Notification title: #{title}")
-      Rails.logger.debug("Notification body: #{body}")
+      Rails.logger.debug { "Notification title: #{title}" }
+      Rails.logger.debug { "Notification body: #{body}" }
 
       @push_tokens = push_tokens
       @title = title
@@ -100,19 +100,19 @@ module PushNotifications
     # @param body [String] The notification body
     # @return [Hash] FCM response
     def send_notification(push_token, title, body)
-      Rails.logger.debug("Preparing FCM message for token: #{push_token[0..8]}...")
+      Rails.logger.debug { "Preparing FCM message for token: #{push_token[0..8]}..." }
 
       # Construct FCM message payload according to FCM v1 API format
       message = {
-        "token": push_token,
-        "notification": { "title": title, "body": body }
+        token: push_token,
+        notification: { title: title, body: body }
       }
 
-      Rails.logger.debug("FCM message payload: #{message}")
+      Rails.logger.debug { "FCM message payload: #{message}" }
 
       # Send the notification via FCM v1 API
       response = @fcm.send_v1(message)
-      Rails.logger.debug("FCM response: #{response}")
+      Rails.logger.debug { "FCM response: #{response}" }
 
       response
     end

@@ -13,9 +13,9 @@ module Jwt
     # @param payload [Hash] The data to encode into the JWT token
     def initialize(payload)
       Rails.logger.info('Initializing JWT Encode service')
-      Rails.logger.debug("Payload provided: #{payload ? 'Yes' : 'No'}")
-      Rails.logger.debug("Payload keys: #{payload&.keys}")
-      Rails.logger.debug("User ID in payload: #{payload[:user_id] || payload['user_id']}")
+      Rails.logger.debug { "Payload provided: #{payload ? 'Yes' : 'No'}" }
+      Rails.logger.debug { "Payload keys: #{payload&.keys}" }
+      Rails.logger.debug { "User ID in payload: #{payload[:user_id] || payload['user_id']}" }
 
       @payload = payload
     end
@@ -34,8 +34,8 @@ module Jwt
     def log_initialization_info
       Rails.logger.info('Starting JWT token encoding process')
       Rails.logger.debug('Using HS256 algorithm for token signing')
-      Rails.logger.debug("JWT secret configured: #{jwt_secret ? 'Yes' : 'No'}")
-      Rails.logger.debug("Payload to encode: #{@payload}")
+      Rails.logger.debug { "JWT secret configured: #{jwt_secret ? 'Yes' : 'No'}" }
+      Rails.logger.debug { "Payload to encode: #{@payload}" }
     end
 
     # Encode the payload into a JWT token and handle any errors
@@ -55,8 +55,8 @@ module Jwt
     # @param encoded_token [String] The successfully encoded JWT token
     def log_success(encoded_token)
       Rails.logger.info('Successfully encoded JWT token')
-      Rails.logger.debug("Generated token length: #{encoded_token.length} characters")
-      Rails.logger.debug("Token preview: #{encoded_token[0..20]}...")
+      Rails.logger.debug { "Generated token length: #{encoded_token.length} characters" }
+      Rails.logger.debug { "Token preview: #{encoded_token[0..20]}..." }
     end
 
     # Handle encoding errors with proper logging and re-raise
@@ -64,8 +64,8 @@ module Jwt
     # @raise [StandardError] Re-raises the original error
     def handle_encoding_error(error)
       Rails.logger.error("Failed to encode JWT token: #{error.message}")
-      Rails.logger.debug("Error class: #{error.class}")
-      Rails.logger.debug("Payload causing error: #{@payload}")
+      Rails.logger.debug { "Error class: #{error.class}" }
+      Rails.logger.debug { "Payload causing error: #{@payload}" }
       raise error
     end
 

@@ -35,7 +35,7 @@ module Pets
     # Uses memoization to prevent multiple database queries
     # @return [Array<Integer>] Array of pet IDs owned by the user
     def pet_ids
-      Rails.logger.debug("Fetching pet IDs for user_id: #{user_id}")
+      Rails.logger.debug { "Fetching pet IDs for user_id: #{user_id}" }
       @pet_ids ||= PetOwner.where(owner_id: user_id).pluck(:pet_id)
     end
 
@@ -49,7 +49,7 @@ module Pets
     # Raises internal server error if user is not found
     # @raise [Exceptions::InternalServerError] When user doesn't exist
     def validate_user_existence
-      Rails.logger.debug("Validating existence of user_id: #{user_id}")
+      Rails.logger.debug { "Validating existence of user_id: #{user_id}" }
 
       return if User.exists?(user_id)
 

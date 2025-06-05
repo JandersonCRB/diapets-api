@@ -23,16 +23,8 @@ module Pets
     def call
       Rails.logger.info("Registering insulin for pet_id: #{pet_id}, responsible_id: #{@params[:responsible_id]}")
 
-      # Validate all required permissions and data
-      validate_user_existence(@params[:responsible_id])
-      validate_pet_existence(pet_id)
-      validate_pet_permission(@decoded_token[:user_id], pet_id)
-      validate_pet_permission(@params[:responsible_id], pet_id)
-
-      # Create insulin application record
+      validate_permissions
       insulin_application = register_insulin
-
-      # Notify all pet owners about the insulin application
       notify_pet_owners(pet_id, insulin_application)
 
       Rails.logger.info("Successfully registered insulin application with ID: #{insulin_application.id}")
@@ -40,6 +32,14 @@ module Pets
     end
 
     private
+
+    # Validates all required permissions and data
+    def validate_permissions
+      validate_user_existence(@params[:responsible_id])
+      validate_pet_existence(pet_id)
+      validate_pet_permission(@decoded_token[:user_id], pet_id)
+      validate_pet_permission(@params[:responsible_id], pet_id)
+    end
 
     # Sends push notifications to all owners of the pet about the insulin registration
     # Collects push tokens from all owners and sends notification about the application
@@ -51,7 +51,7 @@ module Pets
       pets = retrieve_pets_with_owners(pet_id)
 
       pets.each do |pet|
-        Rails.logger.debug("Processing notifications for pet: #{pet.name}")
+        Rails.logger.debug { "Processing notifications for pet: #{pet.name}" }
 
         push_tokens = collect_push_tokens_for_pet(pet)
         send_notification_to_pet_owners(pet, push_tokens) if push_tokens.any?
@@ -87,7 +87,7 @@ module Pets
     # @param user_id [Integer] The user ID to validate
     # @raise [Exceptions::NotFoundError] When user doesn't exist
     def validate_user_existence(user_id)
-      Rails.logger.debug("Validating existence of user_id: #{user_id}")
+      Rails.logger.debug { "Validating existence of user_id: #{user_id}" }
 
       return if User.exists?(user_id)
 
@@ -99,7 +99,7 @@ module Pets
     # @param pet_id [Integer] The pet ID to validate
     # @raise [Exceptions::NotFoundError] When pet doesn't exist
     def validate_pet_existence(pet_id)
-      Rails.logger.debug("Validating existence of pet_id: #{pet_id}")
+      Rails.logger.debug { "Validating existence of pet_id: #{pet_id}" }
 
       return if Pet.exists?(id: pet_id)
 
@@ -133,7 +133,7 @@ module Pets
         end
       end
 
-      Rails.logger.debug("Collected #{push_tokens.size} push tokens for pet #{pet.name}")
+      Rails.logger.debug { "Collected #{push_tokens.size} push tokens for pet #{pet.name}" }
       push_tokens
     end
 

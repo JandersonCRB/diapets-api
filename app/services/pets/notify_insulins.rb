@@ -77,7 +77,7 @@ module Pets
     # @param pets [ActiveRecord::Relation] Pets to process
     def process_pet_notifications(pets)
       pets.each do |pet|
-        Rails.logger.debug("Processing notifications for pet: #{pet.name} (ID: #{pet.id})")
+        Rails.logger.debug { "Processing notifications for pet: #{pet.name} (ID: #{pet.id})" }
         push_tokens = collect_push_tokens_for_pet(pet)
         notify_users(push_tokens, pet.name) if push_tokens.any?
       end
@@ -93,7 +93,7 @@ module Pets
           push_tokens << push_token.token
         end
       end
-      Rails.logger.debug("Collected #{push_tokens.size} push tokens for pet #{pet.name}")
+      Rails.logger.debug { "Collected #{push_tokens.size} push tokens for pet #{pet.name}" }
       push_tokens
     end
 
@@ -117,7 +117,7 @@ module Pets
       Rails.logger.info("Logging notification records for #{pet_ids.count} pets")
 
       pet_ids.each do |pet|
-        Rails.logger.debug("Creating notification log for pet_id: #{pet.id}")
+        Rails.logger.debug { "Creating notification log for pet_id: #{pet.id}" }
 
         SentNotification.create(pet_id: pet.id,
                                 minutes_alarm: params[:minutes_until_next_insulin],

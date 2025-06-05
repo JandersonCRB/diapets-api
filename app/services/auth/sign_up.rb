@@ -37,20 +37,20 @@ module Auth
     # Checks for presence, valid format, and ensures email is not already registered
     # @raise [Exceptions::UnprocessableEntityError] If email validation fails
     def validate_email
-      Rails.logger.debug "Validating email: #{@params[:email]}"
+      Rails.logger.debug { "Validating email: #{@params[:email]}" }
 
       validate_email_presence
       validate_email_format
       validate_email_uniqueness
 
-      Rails.logger.debug "Email validation successful for: #{@params[:email]}"
+      Rails.logger.debug { "Email validation successful for: #{@params[:email]}" }
     end
 
     # Create a new user record with validated parameters
     # Uses the sanitized user parameters to create the account
     # @return [User] The newly created user record
     def create_user
-      Rails.logger.debug "Creating user account with parameters: #{user_params.except(:password)}"
+      Rails.logger.debug { "Creating user account with parameters: #{user_params.except(:password)}" }
 
       # Create the user with validated parameters
       user = User.create(user_params)
@@ -67,11 +67,13 @@ module Auth
 
       # Check minimum password length
       if @params[:password].length < 6
-        Rails.logger.debug "Password validation failed: password too short (#{@params[:password].length} characters)"
+        Rails.logger.debug do
+          "Password validation failed: password too short (#{@params[:password].length} characters)"
+        end
         raise Exceptions::UnprocessableEntityError.new('Password is too short', detailed_code: 'SHORT_PASSWORD')
       end
 
-      Rails.logger.debug "Password validation successful (length: #{@params[:password].length})"
+      Rails.logger.debug { "Password validation successful (length: #{@params[:password].length})" }
     end
 
     # Validate first and last name requirements
@@ -83,7 +85,7 @@ module Auth
       validate_first_name
       validate_last_name
 
-      Rails.logger.debug "Name validation successful: #{@params[:first_name]} #{@params[:last_name]}"
+      Rails.logger.debug { "Name validation successful: #{@params[:first_name]} #{@params[:last_name]}" }
     end
 
     # Perform comprehensive validation of all input parameters
@@ -136,7 +138,7 @@ module Auth
       # Validate first name length
       return unless @params[:first_name].length < 2
 
-      Rails.logger.debug "Name validation failed: first name too short (#{@params[:first_name].length} characters)"
+      Rails.logger.debug { "Name validation failed: first name too short (#{@params[:first_name].length} characters)" }
       raise Exceptions::UnprocessableEntityError.new('First name is too short', detailed_code: 'FIRST_NAME_SHORT')
     end
 
@@ -153,7 +155,7 @@ module Auth
       # Validate last name length
       return unless @params[:last_name].length < 2
 
-      Rails.logger.debug "Name validation failed: last name too short (#{@params[:last_name].length} characters)"
+      Rails.logger.debug { "Name validation failed: last name too short (#{@params[:last_name].length} characters)" }
       raise Exceptions::UnprocessableEntityError.new('Last name is too short', detailed_code: 'LAST_NAME_SHORT')
     end
 
@@ -200,7 +202,7 @@ module Auth
     def validate_email_format
       return if @params[:email] =~ URI::MailTo::EMAIL_REGEXP
 
-      Rails.logger.debug "Email validation failed: invalid format for #{@params[:email]}"
+      Rails.logger.debug { "Email validation failed: invalid format for #{@params[:email]}" }
       raise Exceptions::UnprocessableEntityError.new('Email is invalid', detailed_code: 'INVALID_EMAIL')
     end
 
@@ -209,7 +211,7 @@ module Auth
     def validate_email_uniqueness
       return unless User.exists?(email: @params[:email])
 
-      Rails.logger.debug "Email validation failed: email already exists #{@params[:email]}"
+      Rails.logger.debug { "Email validation failed: email already exists #{@params[:email]}" }
       raise Exceptions::UnprocessableEntityError.new('Email is already taken', detailed_code: 'EMAIL_TAKEN')
     end
   end

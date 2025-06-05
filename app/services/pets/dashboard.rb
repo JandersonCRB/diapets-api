@@ -41,7 +41,7 @@ module Pets
     # Uses memoization to prevent multiple database queries
     # @return [InsulinApplication, nil] The last insulin application or nil if none exist
     def last_insulin_application
-      Rails.logger.debug("Fetching last insulin application for pet_id: #{pet_id}")
+      Rails.logger.debug { "Fetching last insulin application for pet_id: #{pet_id}" }
       @last_insulin_application ||= InsulinApplication.where(pet_id: pet_id).order(application_time: :desc).first
     end
 
@@ -49,12 +49,12 @@ module Pets
     # Based on the last application time and pet's insulin frequency
     # @return [Time, nil] The next insulin application time or nil if no previous application
     def next_insulin_application
-      Rails.logger.debug("Calculating next insulin application time for pet_id: #{pet_id}")
+      Rails.logger.debug { "Calculating next insulin application time for pet_id: #{pet_id}" }
 
       pet_insulin_frequency = Pet.select(:insulin_frequency).find(pet_id).insulin_frequency
       next_time = last_insulin_application&.application_time&.advance(hours: pet_insulin_frequency)
 
-      Rails.logger.debug("Next insulin application calculated: #{next_time}")
+      Rails.logger.debug { "Next insulin application calculated: #{next_time}" }
       next_time
     end
 

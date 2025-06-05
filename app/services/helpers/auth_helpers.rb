@@ -35,7 +35,7 @@ module Helpers
         raise Exceptions::InternalServerError, 'JWT_SECRET ENV VARIABLE NOT SET'
       end
 
-      Rails.logger.debug "JWT secret successfully retrieved (length: #{secret.length} characters)"
+      Rails.logger.debug { "JWT secret successfully retrieved (length: #{secret.length} characters)" }
       secret
     end
 
@@ -52,7 +52,7 @@ module Helpers
     # @return [Hash] The JWT payload
     def build_jwt_payload(user)
       payload = { user_id: user.id }
-      Rails.logger.debug "JWT payload: #{payload}"
+      Rails.logger.debug { "JWT payload: #{payload}" }
       payload
     end
 
@@ -68,7 +68,7 @@ module Helpers
     # @param token [String] The generated token
     def log_token_generation_success(user, token)
       Rails.logger.info "Successfully generated JWT token for user #{user.id}"
-      Rails.logger.debug "Generated token length: #{token&.length || 0} characters"
+      Rails.logger.debug { "Generated token length: #{token&.length || 0} characters" }
     end
 
     # Log JWT token generation error

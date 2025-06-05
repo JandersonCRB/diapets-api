@@ -14,9 +14,9 @@ module Jwt
     # @param verify [Boolean] Whether to verify the token signature (default: true)
     def initialize(token, verify: true)
       Rails.logger.info('Initializing JWT Decode service')
-      Rails.logger.debug("Token provided: #{token ? 'Yes' : 'No'}")
-      Rails.logger.debug("Token length: #{token&.length || 0} characters")
-      Rails.logger.debug("Verification enabled: #{verify}")
+      Rails.logger.debug { "Token provided: #{token ? 'Yes' : 'No'}" }
+      Rails.logger.debug { "Token length: #{token&.length || 0} characters" }
+      Rails.logger.debug { "Verification enabled: #{verify}" }
 
       @token = token
       @verify = verify
@@ -38,7 +38,7 @@ module Jwt
     def log_initialization_info
       Rails.logger.info('Starting JWT token decoding process')
       Rails.logger.debug('Using HS256 algorithm for token verification')
-      Rails.logger.debug("JWT secret configured: #{jwt_secret ? 'Yes' : 'No'}")
+      Rails.logger.debug { "JWT secret configured: #{jwt_secret ? 'Yes' : 'No'}" }
     end
 
     # Validate the token by checking if it exists and is not blank
@@ -68,8 +68,8 @@ module Jwt
       # Convert string keys to symbols for consistent access patterns
       symbolized_payload = decoded.symbolize_keys
       Rails.logger.info('Successfully decoded JWT token')
-      Rails.logger.debug("Token payload keys: #{symbolized_payload.keys}")
-      Rails.logger.debug("User ID from token: #{symbolized_payload[:user_id]}")
+      Rails.logger.debug { "Token payload keys: #{symbolized_payload.keys}" }
+      Rails.logger.debug { "User ID from token: #{symbolized_payload[:user_id]}" }
 
       symbolized_payload
     end
@@ -79,7 +79,7 @@ module Jwt
     def perform_jwt_decode
       # Decode the JWT token using the configured secret and algorithm
       decoded = JWT.decode(token, jwt_secret, verify, { algorithm: 'HS256' })[0]
-      Rails.logger.debug("Raw decoded token: #{decoded}")
+      Rails.logger.debug { "Raw decoded token: #{decoded}" }
       decoded
     end
 
@@ -98,7 +98,7 @@ module Jwt
     # @raise [Exceptions::InvalidTokenError] Always raises with generic error message
     def handle_jwt_error(error)
       Rails.logger.error("JWT error: #{error.message}")
-      Rails.logger.debug("JWT error details: #{error.class}")
+      Rails.logger.debug { "JWT error details: #{error.class}" }
       raise Exceptions::InvalidTokenError.new, 'Invalid Token'
     end
 
@@ -107,7 +107,7 @@ module Jwt
     # @raise [Exceptions::InvalidTokenError] Always raises with generic error message
     def handle_unexpected_decode_error(error)
       Rails.logger.error("Unexpected error during JWT decoding: #{error.message}")
-      Rails.logger.debug("Error class: #{error.class}")
+      Rails.logger.debug { "Error class: #{error.class}" }
       raise Exceptions::InvalidTokenError.new, 'Invalid Token'
     end
 

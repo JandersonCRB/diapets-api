@@ -42,7 +42,7 @@ module Auth
     # @return [String, Integer] The user ID
     def extract_user_id
       user_id = @decoded_token[:user_id]
-      Rails.logger.debug "Looking up user with ID: #{user_id}"
+      Rails.logger.debug { "Looking up user with ID: #{user_id}" }
       user_id
     end
 
@@ -68,7 +68,7 @@ module Auth
     # @param user [User] The retrieved user
     def log_user_success(user)
       Rails.logger.info "Successfully retrieved current user: #{user.email} (ID: #{user.id})"
-      Rails.logger.debug "User details: #{user.first_name} #{user.last_name}"
+      Rails.logger.debug { "User details: #{user.first_name} #{user.last_name}" }
     end
 
     # Handle not found errors

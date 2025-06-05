@@ -9,17 +9,17 @@ module Helpers
     # @param date [String] The date string to validate
     # @return [Boolean] True if the date is valid, false otherwise
     def date_valid?(date)
-      Rails.logger.debug "Validating date string: '#{date}'"
+      Rails.logger.debug { "Validating date string: '#{date}'" }
 
       # Attempt to parse the date string
       parsed_date = Date.parse(date)
-      Rails.logger.debug "Successfully parsed date: #{parsed_date}"
+      Rails.logger.debug { "Successfully parsed date: #{parsed_date}" }
 
       # Return true if parsing succeeds (implicit return)
       true
     rescue StandardError => e
       # Log parsing failure and return false
-      Rails.logger.debug "Date validation failed for '#{date}': #{e.message}"
+      Rails.logger.debug { "Date validation failed for '#{date}': #{e.message}" }
       false
     end
 
@@ -29,7 +29,7 @@ module Helpers
     # @return [Boolean] True if the date is in the future, false otherwise
     # @raise [ArgumentError] If the date string cannot be parsed
     def date_in_future?(date)
-      Rails.logger.debug "Checking if date '#{date}' is in the future"
+      Rails.logger.debug { "Checking if date '#{date}' is in the future" }
 
       begin
         parsed_date, today = parse_date_and_today(date)
@@ -47,7 +47,7 @@ module Helpers
     def parse_date_and_today(date)
       parsed_date = Date.parse(date)
       today = Time.zone.today
-      Rails.logger.debug "Parsed date: #{parsed_date}, Today: #{today}"
+      Rails.logger.debug { "Parsed date: #{parsed_date}, Today: #{today}" }
       [parsed_date, today]
     end
 
@@ -57,7 +57,7 @@ module Helpers
     # @return [Boolean] True if the date is in the future
     def compare_date_with_today(parsed_date, today)
       is_future = parsed_date > today
-      Rails.logger.debug "Date #{parsed_date} is #{is_future ? 'in the future' : 'not in the future'}"
+      Rails.logger.debug { "Date #{parsed_date} is #{is_future ? 'in the future' : 'not in the future'}" }
       is_future
     end
 

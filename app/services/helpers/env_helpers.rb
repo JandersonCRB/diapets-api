@@ -21,7 +21,7 @@ module Helpers
         raise Exceptions::InternalServerError, 'JWT_SECRET ENV VARIABLE NOT SET'
       end
 
-      Rails.logger.debug "JWT_SECRET successfully retrieved (length: #{jwt.length} characters)"
+      Rails.logger.debug { "JWT_SECRET successfully retrieved (length: #{jwt.length} characters)" }
       jwt
     end
 
@@ -41,7 +41,7 @@ module Helpers
         raise Exceptions::InternalServerError, 'FCM_CRED_PATH ENV VARIABLE NOT SET'
       end
 
-      Rails.logger.debug "FCM_CRED_PATH successfully retrieved: #{fcm}"
+      Rails.logger.debug { "FCM_CRED_PATH successfully retrieved: #{fcm}" }
       fcm
     end
 
@@ -61,7 +61,7 @@ module Helpers
         raise Exceptions::InternalServerError, 'FCM_PROJECT_ID ENV VARIABLE NOT SET'
       end
 
-      Rails.logger.debug "FCM_PROJECT_ID successfully retrieved: #{fcm}"
+      Rails.logger.debug { "FCM_PROJECT_ID successfully retrieved: #{fcm}" }
       fcm
     end
   end

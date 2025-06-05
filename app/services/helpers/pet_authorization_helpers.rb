@@ -13,7 +13,7 @@ module Helpers
     # @raise [Exceptions::UnauthorizedError] If user lacks permission to access the pet
     def validate_pet_permission(user_id, pet_id, owner_permission: false)
       Rails.logger.info "Validating pet permission for user #{user_id} on pet #{pet_id}"
-      Rails.logger.debug "Owner permission required: #{owner_permission}"
+      Rails.logger.debug { "Owner permission required: #{owner_permission}" }
 
       query_params = build_permission_query(user_id, pet_id, owner_permission)
       check_permission_exists(query_params, user_id, pet_id, owner_permission)
@@ -24,11 +24,11 @@ module Helpers
     # @param pet_id [String, Integer] The ID of the pet to validate
     # @raise [Exceptions::NotFoundError] If the pet does not exist
     def validate_pet_existence(pet_id)
-      Rails.logger.debug "Validating existence of pet with ID: #{pet_id}"
+      Rails.logger.debug { "Validating existence of pet with ID: #{pet_id}" }
 
       # Check if the pet exists in the database
       if Pet.exists?(id: pet_id)
-        Rails.logger.debug "Pet existence validated: Pet #{pet_id} exists"
+        Rails.logger.debug { "Pet existence validated: Pet #{pet_id} exists" }
         return
       end
 
@@ -57,7 +57,7 @@ module Helpers
         Rails.logger.debug 'Checking for OWNER level permission'
       end
 
-      Rails.logger.debug "Query parameters for permission check: #{query_params}"
+      Rails.logger.debug { "Query parameters for permission check: #{query_params}" }
       query_params
     end
 

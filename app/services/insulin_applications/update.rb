@@ -39,9 +39,9 @@ module InsulinApplications
     # @return [InsulinApplication] The found insulin application record
     # @raise [Exceptions::NotFoundError] If insulin application is not found
     def find_insulin_application
-      Rails.logger.debug "Searching for insulin application with ID: #{insulin_application_id}"
+      Rails.logger.debug { "Searching for insulin application with ID: #{insulin_application_id}" }
 
-      InsulinApplication.find_by!(id: insulin_application_id)
+      InsulinApplication.find(insulin_application_id)
     rescue ActiveRecord::RecordNotFound
       Rails.logger.warn "Insulin application not found with ID: #{insulin_application_id}"
       raise Exceptions::NotFoundError, 'Insulin application not found'
@@ -52,7 +52,7 @@ module InsulinApplications
     # @return [InsulinApplication] The updated record
     # @raise [ActiveRecord::RecordInvalid] If validation fails
     def update_insulin_application(insulin_application)
-      Rails.logger.debug "Updating insulin application #{insulin_application.id} with new data"
+      Rails.logger.debug { "Updating insulin application #{insulin_application.id} with new data" }
 
       # Log original values for audit trail
       log_original_values(insulin_application)
@@ -72,7 +72,7 @@ module InsulinApplications
         observations: insulin_application.observations
       }
 
-      Rails.logger.debug "Original values: #{original_values}"
+      Rails.logger.debug { "Original values: #{original_values}" }
     end
 
     # Perform the update operation and handle the results
@@ -83,7 +83,7 @@ module InsulinApplications
       # Perform the update
       insulin_application.update!(update_params)
 
-      Rails.logger.debug "Updated values: #{update_params}"
+      Rails.logger.debug { "Updated values: #{update_params}" }
       Rails.logger.info "Insulin application #{insulin_application.id} updated successfully"
 
       insulin_application
@@ -122,7 +122,7 @@ module InsulinApplications
     def validate_and_authorize(insulin_application)
       # Validate that the associated pet exists
       validate_pet_existence(insulin_application.pet_id)
-      Rails.logger.debug "Validated pet existence for pet ID: #{insulin_application.pet_id}"
+      Rails.logger.debug { "Validated pet existence for pet ID: #{insulin_application.pet_id}" }
 
       # Verify user has permission to update this insulin application
       validate_pet_permission(user_id, insulin_application.pet_id)
@@ -135,7 +135,7 @@ module InsulinApplications
     # @return [InsulinApplication] The updated insulin application record
     def execute_update(insulin_application)
       # Log the update parameters for audit trail
-      Rails.logger.debug "Update parameters: #{update_params}"
+      Rails.logger.debug { "Update parameters: #{update_params}" }
 
       # Perform the update operation
       updated_application = update_insulin_application(insulin_application)
