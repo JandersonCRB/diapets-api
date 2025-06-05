@@ -83,7 +83,10 @@ graph TD
 - **Authentication**: JWT tokens with BCrypt
 - **Push Notifications**: Firebase Cloud Messaging (FCM)
 - **Testing**: RSpec with FactoryBot and SimpleCov
-- **Monitoring**: Scout APM
+- **Code Quality**: Rubocop with Rails and RSpec extensions
+- **External Communications**: Firebase Cloud Messaging (FCM) for push notifications
+- **CI/CD**: Heroku CI/CD pipeline with automated testing and deployment
+- **Monitoring**: Scout APM and Rollbar
 - **Deployment**: Docker with multi-stage builds OR running puma directly on Heroku
 
 ## Quick Start
@@ -159,6 +162,10 @@ bundle exec rspec --format documentation
 
 # Check test coverage
 open coverage/index.html
+
+# Run code quality checks
+bundle exec rubocop
+bundle exec rubocop --auto-correct  # Auto-fix simple issues
 ```
 
 ### Production Deployment
