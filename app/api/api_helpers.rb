@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# Helper module providing authentication utilities for API endpoints
 module APIHelpers
   module_function
 

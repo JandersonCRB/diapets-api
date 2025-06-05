@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 module Entities
+  # Entity representing an insulin application record for a pet
   class InsulinApplicationEntity < Grape::Entity
     expose :id
     expose :glucose_level

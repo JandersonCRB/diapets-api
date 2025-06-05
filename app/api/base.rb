@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# Base API class that mounts all API modules and handles error responses
 class Base < Grape::API
   get do
     { hello: 'world' }

@@ -4,6 +4,7 @@
 # This service handles the secure decoding and validation of JWT tokens
 # used for user authentication and authorization
 module Jwt
+  # Service class for decoding and validating JWT tokens
   class Decode
     prepend SimpleCommand
     include Helpers::EnvHelpers

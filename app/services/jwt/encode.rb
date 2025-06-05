@@ -4,6 +4,7 @@
 # This service handles the secure creation and signing of JWT tokens
 # used for user authentication and session management
 module Jwt
+  # Service class for encoding and signing JWT tokens
   class Encode
     prepend SimpleCommand
     include Helpers::EnvHelpers

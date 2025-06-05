@@ -3,6 +3,7 @@
 # base interface for errors
 
 module Exceptions
+  # Base application error class for custom exception handling
   class AppError < StandardError
     attr_reader :status, :message, :code, :detailed_code
 

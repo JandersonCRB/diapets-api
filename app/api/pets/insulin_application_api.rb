@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 module Pets
+  # API for managing insulin application records for pets
   class InsulinApplicationAPI < Grape::API
     helpers APIHelpers
 

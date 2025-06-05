@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 module Pets
+  # API for pet management including registration, dashboard, and insulin tracking
   class PetsAPI < Grape::API
     helpers APIHelpers
     namespace :pets do

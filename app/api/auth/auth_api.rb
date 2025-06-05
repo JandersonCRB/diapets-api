@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 module Auth
+  # Authentication API for user login, registration, and profile management
   class AuthAPI < Grape::API
     helpers APIHelpers
 

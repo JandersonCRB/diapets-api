@@ -4,6 +4,7 @@
 # This service handles the registration of Firebase Cloud Messaging (FCM) tokens
 # for users to enable push notifications
 module Users
+  # Service class for creating and managing user push tokens
   class CreatePushToken
     prepend SimpleCommand
 

@@ -1,5 +1,8 @@
 # frozen_string_literal: true
 
+# Represents a user in the Diapets system who can own or care for diabetic pets.
+# Users can have multiple pets through ownership relationships and receive
+# push notifications on their registered devices about pet care reminders.
 class User < ApplicationRecord
   has_many :push_tokens
   has_many :pet_owners, foreign_key: :owner_id

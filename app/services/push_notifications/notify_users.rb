@@ -3,6 +3,7 @@
 # Service class responsible for sending push notifications to users via Firebase Cloud Messaging (FCM)
 # This service handles the delivery of push notifications to multiple users
 module PushNotifications
+  # Service class for sending push notifications via Firebase Cloud Messaging
   class NotifyUsers
     prepend SimpleCommand
     include Helpers::EnvHelpers

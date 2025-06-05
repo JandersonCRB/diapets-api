@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 module Entities
+  # Entity representing filter criteria for insulin application queries
   class InsulinApplicationsFiltersEntity < Grape::Entity
     expose :min_date,
            documentation: { type: 'DateTime', desc: 'The minimum date of the insulin applications', required: false }

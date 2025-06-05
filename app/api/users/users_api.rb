@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 module Users
+  # API for user management operations including push token registration
   class UsersAPI < Grape::API
     helpers APIHelpers
     namespace :users do

@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 module Entities
+  # Entity representing user account information
   class UserEntity < Grape::Entity
     expose :id
     expose :email
