@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # base interface for errors
 
 module Exceptions

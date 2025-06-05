@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Exceptions
   class InvalidCredentialsError < AppError
     def initialize(message = ErrorMessages::MESSAGES[:INVALID_CREDENTIALS])

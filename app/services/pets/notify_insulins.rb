@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Pets
   # Service class for notifying pet owners about upcoming insulin applications
   # Finds pets needing insulin and sends push notifications to their owners
@@ -7,25 +9,25 @@ module Pets
     # Initialize the notification service
     # No parameters required as it uses predefined notification settings
     def initialize
-      Rails.logger.info("Pets::NotifyInsulins initialized")
+      Rails.logger.info('Pets::NotifyInsulins initialized')
     end
 
     # Main execution method for insulin notification process
     # Finds pets needing insulin, sends notifications, and logs the sent notifications
     # @return [void]
     def call
-      Rails.logger.info("Starting insulin notification process")
-      
+      Rails.logger.info('Starting insulin notification process')
+
       pet_ids = find_pet_ids
-      
+
       if pet_ids.empty?
-        Rails.logger.info("No pets found needing insulin notifications")
+        Rails.logger.info('No pets found needing insulin notifications')
         return
       end
 
       notify_all(pet_ids)
       log_notifications(pet_ids)
-      
+
       Rails.logger.info("Insulin notification process completed for #{pet_ids.size} pets")
     end
 
@@ -47,7 +49,7 @@ module Pets
     # @return [ActiveRecord::Relation] Pets that need insulin notifications
     def find_pet_ids
       Rails.logger.info("Finding pets that need insulin notifications with params: #{params}")
-      
+
       pets = FindByNextInsulinTime.call(params).result
       Rails.logger.info("Found pets needing notifications: #{pets.to_json}")
 
@@ -59,19 +61,19 @@ module Pets
     # @param pet_ids [ActiveRecord::Relation] Pets requiring insulin notifications
     def notify_all(pet_ids)
       Rails.logger.info("Sending notifications to owners of #{pet_ids.count} pets")
-      
+
       pets = Pet.select(:id, :name).includes(owners: :push_tokens).where(id: pet_ids.map(&:id))
-      
+
       pets.each do |pet|
         Rails.logger.debug("Processing notifications for pet: #{pet.name} (ID: #{pet.id})")
-        
+
         push_tokens = []
         pet.owners.each do |owner|
           owner.push_tokens.each do |push_token|
             push_tokens << push_token.token
           end
         end
-        
+
         Rails.logger.debug("Collected #{push_tokens.size} push tokens for pet #{pet.name}")
         notify_users(push_tokens, pet.name) if push_tokens.any?
       end
@@ -82,11 +84,11 @@ module Pets
     # @param pet_name [String] Name of the pet needing insulin
     def notify_users(push_tokens, pet_name)
       Rails.logger.info("Sending push notifications for pet: #{pet_name} to #{push_tokens.size} devices")
-      
+
       PushNotifications::NotifyUsers.call(push_tokens,
                                           "#{pet_name}: Insulina!",
                                           "#{pet_name} precisará de insulina em breve!.")
-                                          
+
       Rails.logger.info("Push notifications sent successfully for pet: #{pet_name}")
     end
 
@@ -95,16 +97,16 @@ module Pets
     # @param pet_ids [ActiveRecord::Relation] Pets for which notifications were sent
     def log_notifications(pet_ids)
       Rails.logger.info("Logging notification records for #{pet_ids.count} pets")
-      
+
       pet_ids.each do |pet|
         Rails.logger.debug("Creating notification log for pet_id: #{pet.id}")
-        
+
         SentNotification.create(pet_id: pet.id,
                                 minutes_alarm: params[:minutes_until_next_insulin],
                                 last_insulin_id: pet.insulin_application_id)
       end
-      
-      Rails.logger.info("Notification logging completed")
+
+      Rails.logger.info('Notification logging completed')
     end
   end
 end

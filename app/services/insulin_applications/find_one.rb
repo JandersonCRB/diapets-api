@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module InsulinApplications
   # Service class for retrieving a single insulin application record
   # Includes authorization checks to ensure user can access the requested data
@@ -18,23 +20,23 @@ module InsulinApplications
     # Performs authorization checks before returning the record
     # @return [InsulinApplication] The requested insulin application record
     def call
-      Rails.logger.info "Starting insulin application retrieval process"
-      
+      Rails.logger.info 'Starting insulin application retrieval process'
+
       # Find the insulin application record
       insulin_application = find_insulin_application
       Rails.logger.info "Found insulin application with ID: #{insulin_application.id} for pet ID: #{insulin_application.pet_id}"
-      
+
       # Validate that the associated pet exists
       validate_pet_existence(insulin_application.pet_id)
       Rails.logger.debug "Validated pet existence for pet ID: #{insulin_application.pet_id}"
-      
+
       # Verify user has permission to access this insulin application
       validate_pet_permission(user_id, insulin_application.pet_id)
       Rails.logger.info "Authorization validated for user #{user_id} to access insulin application #{insulin_application.id}"
 
       Rails.logger.info "Successfully retrieved insulin application with ID: #{insulin_application.id}"
       insulin_application
-    rescue => e
+    rescue StandardError => e
       Rails.logger.error "Failed to retrieve insulin application: #{e.message}"
       Rails.logger.error e.backtrace.join("\n")
       raise
@@ -47,11 +49,11 @@ module InsulinApplications
     # @raise [Exceptions::NotFoundError] If insulin application is not found
     def find_insulin_application
       Rails.logger.debug "Searching for insulin application with ID: #{insulin_application_id}"
-      
+
       InsulinApplication.find_by!(id: insulin_application_id)
     rescue ActiveRecord::RecordNotFound
       Rails.logger.warn "Insulin application not found with ID: #{insulin_application_id}"
-      raise Exceptions::NotFoundError.new('Insulin application not found')
+      raise Exceptions::NotFoundError, 'Insulin application not found'
     end
 
     # Extract insulin application ID from request parameters

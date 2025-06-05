@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class User < ApplicationRecord
   has_many :push_tokens
   has_many :pet_owners, foreign_key: :owner_id

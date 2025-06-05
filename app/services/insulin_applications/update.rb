@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module InsulinApplications
   # Service class responsible for updating insulin application records
   # Validates authorization and updates the record with new data
@@ -18,16 +20,16 @@ module InsulinApplications
     # Validates authorization and performs the update operation
     # @return [InsulinApplication] The updated insulin application record
     def call
-      Rails.logger.info "Starting insulin application update process"
-      
+      Rails.logger.info 'Starting insulin application update process'
+
       # Find the insulin application record to update
       insulin_application = find_insulin_application
       Rails.logger.info "Found insulin application with ID: #{insulin_application.id} for pet ID: #{insulin_application.pet_id}"
-      
+
       # Validate that the associated pet exists
       validate_pet_existence(insulin_application.pet_id)
       Rails.logger.debug "Validated pet existence for pet ID: #{insulin_application.pet_id}"
-      
+
       # Verify user has permission to update this insulin application
       validate_pet_permission(user_id, insulin_application.pet_id)
       Rails.logger.info "Authorization validated for user #{user_id} to update insulin application #{insulin_application.id}"
@@ -38,9 +40,9 @@ module InsulinApplications
       # Perform the update operation
       updated_application = update_insulin_application(insulin_application)
       Rails.logger.info "Successfully updated insulin application with ID: #{insulin_application.id}"
-      
+
       updated_application
-    rescue => e
+    rescue StandardError => e
       Rails.logger.error "Failed to update insulin application: #{e.message}"
       Rails.logger.error e.backtrace.join("\n")
       raise
@@ -53,11 +55,11 @@ module InsulinApplications
     # @raise [Exceptions::NotFoundError] If insulin application is not found
     def find_insulin_application
       Rails.logger.debug "Searching for insulin application with ID: #{insulin_application_id}"
-      
+
       InsulinApplication.find_by!(id: insulin_application_id)
     rescue ActiveRecord::RecordNotFound
       Rails.logger.warn "Insulin application not found with ID: #{insulin_application_id}"
-      raise Exceptions::NotFoundError.new('Insulin application not found')
+      raise Exceptions::NotFoundError, 'Insulin application not found'
     end
 
     # Update the insulin application with new data
@@ -66,7 +68,7 @@ module InsulinApplications
     # @raise [ActiveRecord::RecordInvalid] If validation fails
     def update_insulin_application(insulin_application)
       Rails.logger.debug "Updating insulin application #{insulin_application.id} with new data"
-      
+
       # Store original values for logging
       original_values = {
         application_time: insulin_application.application_time,
@@ -75,15 +77,15 @@ module InsulinApplications
         user_id: insulin_application.user_id,
         observations: insulin_application.observations
       }
-      
+
       Rails.logger.debug "Original values: #{original_values}"
-      
+
       # Perform the update
       insulin_application.update!(update_params)
-      
+
       Rails.logger.debug "Updated values: #{update_params}"
       Rails.logger.info "Insulin application #{insulin_application.id} updated successfully"
-      
+
       insulin_application
     rescue ActiveRecord::RecordInvalid => e
       Rails.logger.error "Validation failed during insulin application update: #{e.message}"
@@ -104,7 +106,7 @@ module InsulinApplications
         application_time: @params[:application_time],
         insulin_units: @params[:insulin_units],
         glucose_level: @params[:glucose_level],
-        user_id: @params[:responsible_id], # Note: maps responsible_id to user_id field
+        user_id: @params[:responsible_id], # NOTE: maps responsible_id to user_id field
         observations: @params[:observations]
       }
     end

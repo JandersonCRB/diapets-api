@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Exceptions
   class NotFoundError < AppError
     def initialize(message = ErrorMessages::MESSAGES[:NOT_FOUND])

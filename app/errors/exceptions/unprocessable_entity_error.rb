@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Exceptions
   class UnprocessableEntityError < AppError
     def initialize(message = ErrorMessages::MESSAGES[:UNPROCESSABLE_ENTITY], detailed_code: nil)

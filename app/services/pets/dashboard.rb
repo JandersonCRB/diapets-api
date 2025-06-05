@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Pets
   # Service class for retrieving pet dashboard information
   # Provides insulin application history and next dose scheduling data
@@ -19,15 +21,15 @@ module Pets
     # @return [Hash] Dashboard data with last and next insulin application info
     def call
       Rails.logger.info("Fetching dashboard data for pet_id: #{pet_id}")
-      
+
       validate_pet_existence(pet_id)
       validate_pet_permission(user_id, pet_id)
-      
+
       dashboard_data = {
         last_insulin_application: last_insulin_application,
         next_insulin_application: next_insulin_application
       }
-      
+
       Rails.logger.info("Dashboard data retrieved successfully for pet_id: #{pet_id}")
       dashboard_data
     end
@@ -47,10 +49,10 @@ module Pets
     # @return [Time, nil] The next insulin application time or nil if no previous application
     def next_insulin_application
       Rails.logger.debug("Calculating next insulin application time for pet_id: #{pet_id}")
-      
+
       pet_insulin_frequency = Pet.select(:insulin_frequency).find(pet_id).insulin_frequency
       next_time = last_insulin_application&.application_time&.advance(hours: pet_insulin_frequency)
-      
+
       Rails.logger.debug("Next insulin application calculated: #{next_time}")
       next_time
     end

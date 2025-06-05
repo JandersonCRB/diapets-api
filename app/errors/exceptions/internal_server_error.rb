@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Exceptions
   class InternalServerError < AppError
     def initialize(message = ErrorMessages::MESSAGES[:INTERNAL_SERVER_ERROR])

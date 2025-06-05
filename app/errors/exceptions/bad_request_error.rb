@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Exceptions
   class BadRequestError < AppError
     def initialize(message = 'Bad Request', detailed_code: nil)

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class InsulinAlarm < ApplicationRecord
   belongs_to :pet
 

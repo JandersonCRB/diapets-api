@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Pets
   # Service class for registering insulin applications for pets
   # Handles insulin dose recording and notification to pet owners
@@ -19,19 +21,19 @@ module Pets
     # @return [InsulinApplication] The created insulin application record
     def call
       Rails.logger.info("Registering insulin for pet_id: #{pet_id}, responsible_id: #{@params[:responsible_id]}")
-      
+
       # Validate all required permissions and data
       validate_user_existence(@params[:responsible_id])
       validate_pet_existence(pet_id)
       validate_pet_permission(@decoded_token[:user_id], pet_id)
       validate_pet_permission(@params[:responsible_id], pet_id)
-      
+
       # Create insulin application record
       insulin_application = register_insulin
-      
+
       # Notify all pet owners about the insulin application
       notify_pet_owners(pet_id, insulin_application)
-      
+
       Rails.logger.info("Successfully registered insulin application with ID: #{insulin_application.id}")
       insulin_application
     end
@@ -42,16 +44,16 @@ module Pets
     # Collects push tokens from all owners and sends notification about the application
     # @param pet_id [Integer] ID of the pet that received insulin
     # @param insulin_application [InsulinApplication] The created insulin application record
-    def notify_pet_owners(pet_id, insulin_application)
+    def notify_pet_owners(pet_id, _insulin_application)
       Rails.logger.info("Sending insulin registration notifications for pet_id: #{pet_id}")
-      
+
       pets = Pet.select(:id, :name)
-               .includes(owners: :push_tokens)
-               .where(id: pet_id)
+                .includes(owners: :push_tokens)
+                .where(id: pet_id)
 
       pets.each do |pet|
         Rails.logger.debug("Processing notifications for pet: #{pet.name}")
-        
+
         push_tokens = []
         pet.owners.each do |owner|
           owner.push_tokens.each do |push_token|
@@ -60,16 +62,16 @@ module Pets
         end
 
         Rails.logger.debug("Collected #{push_tokens.size} push tokens for pet #{pet.name}")
-        
-        if push_tokens.any?
-          PushNotifications::NotifyUsers.call(
-            push_tokens,
-            "#{pet.name}: Insulina registrada!",
-            "#{responsible.first_name} acabou de registrar uma aplicação de insulina"
-          )
-          
-          Rails.logger.info("Insulin registration notifications sent for pet: #{pet.name}")
-        end
+
+        next unless push_tokens.any?
+
+        PushNotifications::NotifyUsers.call(
+          push_tokens,
+          "#{pet.name}: Insulina registrada!",
+          "#{responsible.first_name} acabou de registrar uma aplicação de insulina"
+        )
+
+        Rails.logger.info("Insulin registration notifications sent for pet: #{pet.name}")
       end
     end
 
@@ -78,7 +80,7 @@ module Pets
     # @return [InsulinApplication] The created insulin application record
     def register_insulin
       Rails.logger.info("Creating insulin application record with params: #{insulin_params.inspect}")
-      
+
       insulin_application = InsulinApplication.create!(
         pet_id: pet_id,
         user_id: @params[:responsible_id],
@@ -87,7 +89,7 @@ module Pets
         application_time: @params[:application_time],
         observations: @params[:observations]
       )
-      
+
       Rails.logger.info("Insulin application created successfully with ID: #{insulin_application.id}")
       insulin_application
     end
@@ -110,7 +112,7 @@ module Pets
     # @raise [Exceptions::NotFoundError] When user doesn't exist
     def validate_user_existence(user_id)
       Rails.logger.debug("Validating existence of user_id: #{user_id}")
-      
+
       return if User.exists?(user_id)
 
       Rails.logger.error("User not found: #{user_id}")
@@ -122,11 +124,11 @@ module Pets
     # @raise [Exceptions::NotFoundError] When pet doesn't exist
     def validate_pet_existence(pet_id)
       Rails.logger.debug("Validating existence of pet_id: #{pet_id}")
-      
+
       return if Pet.exists?(id: pet_id)
 
       Rails.logger.error("Pet not found: #{pet_id}")
-      raise Exceptions::NotFoundError.new
+      raise Exceptions::NotFoundError
     end
 
     # Extracts pet_id from request parameters

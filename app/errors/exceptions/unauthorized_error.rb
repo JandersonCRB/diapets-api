@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Exceptions
   class UnauthorizedError < AppError
     def initialize(message = ErrorMessages::MESSAGES[:UNAUTHORIZED])

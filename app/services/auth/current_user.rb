@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Auth
   # Service class for retrieving the current authenticated user
   # Takes a decoded JWT token and returns the corresponding user record
@@ -20,29 +22,29 @@ module Auth
     # @return [User] The current authenticated user record
     # @raise [Exceptions::NotFoundError] If user is not found in the database
     def call
-      Rails.logger.info "Retrieving current user from decoded token"
-      
+      Rails.logger.info 'Retrieving current user from decoded token'
+
       # Extract user ID from the decoded JWT token
       user_id = @decoded_token[:user_id]
       Rails.logger.debug "Looking up user with ID: #{user_id}"
-      
+
       # Find the user by ID
       user = User.find_by(id: user_id)
-      
+
       # Validate that the user exists
       if user.nil?
         Rails.logger.warn "User not found for ID: #{user_id}"
         raise Exceptions::NotFoundError.new, 'User not found'
       end
-      
+
       Rails.logger.info "Successfully retrieved current user: #{user.email} (ID: #{user.id})"
       Rails.logger.debug "User details: #{user.first_name} #{user.last_name}"
-      
+
       user
     rescue Exceptions::NotFoundError => e
       Rails.logger.error "Current user lookup failed: #{e.message}"
       raise
-    rescue => e
+    rescue StandardError => e
       Rails.logger.error "Unexpected error during current user lookup: #{e.message}"
       Rails.logger.error e.backtrace.join("\n")
       raise

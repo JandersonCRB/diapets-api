@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Pets
   # Service class for finding all insulin applications for a specific pet
   # Supports filtering by date range, insulin units, and glucose levels
@@ -19,12 +21,12 @@ module Pets
     # @return [ActiveRecord::Relation] Filtered insulin applications ordered by application time
     def call
       Rails.logger.info("Finding insulin applications for pet_id: #{pet_id} with filters: #{filter_summary}")
-      
+
       validate_pet_existence(pet_id)
       validate_pet_permission(user_id, pet_id)
 
       applications = find_insulin_applications
-      
+
       Rails.logger.info("Found #{applications.count} insulin applications for pet_id: #{pet_id}")
       applications
     end
@@ -35,7 +37,7 @@ module Pets
     # Orders results by application time in descending order (most recent first)
     # @return [ActiveRecord::Relation] Filtered and ordered insulin applications
     def find_insulin_applications
-      Rails.logger.debug("Applying filters to insulin applications query")
+      Rails.logger.debug('Applying filters to insulin applications query')
       InsulinApplication.where(filters).order(application_time: :desc)
     end
 
@@ -43,18 +45,18 @@ module Pets
     # Dynamically adds filters based on provided parameters
     # @return [Hash] Filter conditions for the database query
     def filters
-      Rails.logger.debug("Building filter conditions for insulin applications")
-      
+      Rails.logger.debug('Building filter conditions for insulin applications')
+
       filter_hash = {
         pet_id: pet_id
       }
 
       # Add date range filter if min or max date is provided
       filter_hash[:application_time] = min_date..max_date if min_date || max_date
-      
+
       # Add insulin units range filter if min or max units is provided
       filter_hash[:insulin_units] = min_units..max_units if min_units || max_units
-      
+
       # Add glucose level range filter if min or max glucose is provided
       filter_hash[:glucose_level] = min_glucose..max_glucose if min_glucose || max_glucose
 
@@ -69,7 +71,7 @@ module Pets
       filters << "date: #{min_date}..#{max_date}" if min_date || max_date
       filters << "units: #{min_units}..#{max_units}" if min_units || max_units
       filters << "glucose: #{min_glucose}..#{max_glucose}" if min_glucose || max_glucose
-      filters.empty? ? "none" : filters.join(", ")
+      filters.empty? ? 'none' : filters.join(', ')
     end
 
     # Extracts pet_id from request parameters

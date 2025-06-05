@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Pets
   class PetsAPI < Grape::API
     helpers APIHelpers
@@ -12,9 +14,9 @@ module Pets
 
       desc 'Register pet'
       params do
-        requires :name, type: String, values: -> (name) { name.length > 1 && name.length < 51 }
+        requires :name, type: String, values: ->(name) { name.length > 1 && name.length < 51 }
         requires :species, type: String, values: Pet::SPECIES
-        requires :birthdate, type: String, values: ->(birthdate) { Date.parse(birthdate) < Date.today }
+        requires :birthdate, type: String, values: ->(birthdate) { Date.parse(birthdate) < Time.zone.today }
         requires :insulin_frequency, type: Integer, values: (1..24)
       end
       post '' do
@@ -32,7 +34,7 @@ module Pets
 
           present dashboard, with: Entities::PetDashboardEntity
         end
-        
+
         namespace :insulin_applications do
           desc 'Register insulin application'
           params do

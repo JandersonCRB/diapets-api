@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Pets
   # Service class for finding all pets owned by a specific user
   # Retrieves pets associated with the authenticated user through ownership relationships
@@ -18,11 +20,11 @@ module Pets
     # @return [ActiveRecord::Relation] Collection of pets owned by the user
     def call
       Rails.logger.info("Finding all pets for user_id: #{user_id}")
-      
+
       validate_user_existence
-      
+
       pets = Pet.includes(:owners).where(pet_owners: { pet_id: pet_ids })
-      
+
       Rails.logger.info("Found #{pets.count} pets for user_id: #{user_id}")
       pets
     end
@@ -48,7 +50,7 @@ module Pets
     # @raise [Exceptions::InternalServerError] When user doesn't exist
     def validate_user_existence
       Rails.logger.debug("Validating existence of user_id: #{user_id}")
-      
+
       return if User.exists?(user_id)
 
       Rails.logger.error("User not found: #{user_id}")

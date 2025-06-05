@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module InsulinApplications
   # Service class responsible for deleting insulin application records
   # Ensures proper authorization before allowing deletion operations
@@ -18,8 +20,8 @@ module InsulinApplications
     # Validates authorization and performs the deletion
     # @return [Boolean] True if deletion was successful
     def call
-      Rails.logger.info "Starting insulin application deletion process"
-      
+      Rails.logger.info 'Starting insulin application deletion process'
+
       # Find the insulin application record
       insulin_application = find_insulin_application
       Rails.logger.info "Found insulin application with ID: #{insulin_application.id} for pet ID: #{insulin_application.pet_id}"
@@ -31,9 +33,9 @@ module InsulinApplications
       # Perform the deletion
       result = insulin_application.destroy
       Rails.logger.info "Successfully deleted insulin application with ID: #{insulin_application.id}"
-      
+
       result
-    rescue => e
+    rescue StandardError => e
       Rails.logger.error "Failed to delete insulin application: #{e.message}"
       Rails.logger.error e.backtrace.join("\n")
       raise
@@ -58,12 +60,11 @@ module InsulinApplications
     # @raise [Exceptions::NotFoundError] If insulin application is not found
     def find_insulin_application
       Rails.logger.debug "Searching for insulin application with ID: #{insulin_application_id}"
-      
+
       InsulinApplication.find_by!(id: insulin_application_id)
     rescue ActiveRecord::RecordNotFound
       Rails.logger.warn "Insulin application not found with ID: #{insulin_application_id}"
-      raise Exceptions::NotFoundError.new('Insulin application not found')
+      raise Exceptions::NotFoundError, 'Insulin application not found'
     end
-
   end
 end

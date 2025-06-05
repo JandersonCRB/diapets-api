@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # Service class responsible for sending push notifications to users via Firebase Cloud Messaging (FCM)
 # This service handles the delivery of push notifications to multiple users
 module PushNotifications
@@ -13,7 +15,7 @@ module PushNotifications
       Rails.logger.info("Initializing NotifyUsers service with #{push_tokens.count} tokens")
       Rails.logger.debug("Notification title: #{title}")
       Rails.logger.debug("Notification body: #{body}")
-      
+
       @push_tokens = push_tokens
       @title = title
       @body = body
@@ -26,22 +28,20 @@ module PushNotifications
     # Main method to send notifications to all registered push tokens
     # Iterates through each token and sends individual notifications
     def call
-      Rails.logger.info("Starting push notification delivery process")
+      Rails.logger.info('Starting push notification delivery process')
       Rails.logger.info("Total notifications to send: #{@push_tokens.count}")
 
       success_count = 0
       error_count = 0
 
       @push_tokens.each_with_index do |push_token, index|
-        begin
-          Rails.logger.info("Sending notification #{index + 1}/#{@push_tokens.count} to token: #{push_token[0..8]}...")
-          send_notification(push_token, @title, @body)
-          Rails.logger.info("Successfully sent notification to token: #{push_token[0..8]}...")
-          success_count += 1
-        rescue StandardError => e
-          Rails.logger.error("Failed to send notification to token #{push_token[0..8]}...: #{e.message}")
-          error_count += 1
-        end
+        Rails.logger.info("Sending notification #{index + 1}/#{@push_tokens.count} to token: #{push_token[0..8]}...")
+        send_notification(push_token, @title, @body)
+        Rails.logger.info("Successfully sent notification to token: #{push_token[0..8]}...")
+        success_count += 1
+      rescue StandardError => e
+        Rails.logger.error("Failed to send notification to token #{push_token[0..8]}...: #{e.message}")
+        error_count += 1
       end
 
       Rails.logger.info("Push notification delivery completed. Success: #{success_count}, Errors: #{error_count}")
@@ -56,19 +56,19 @@ module PushNotifications
     # @return [Hash] FCM response
     def send_notification(push_token, title, body)
       Rails.logger.debug("Preparing FCM message for token: #{push_token[0..8]}...")
-      
+
       # Construct FCM message payload according to FCM v1 API format
       message = {
         "token": push_token,
         "notification": { "title": title, "body": body }
       }
-      
+
       Rails.logger.debug("FCM message payload: #{message}")
-      
+
       # Send the notification via FCM v1 API
       response = @fcm.send_v1(message)
       Rails.logger.debug("FCM response: #{response}")
-      
+
       response
     end
   end

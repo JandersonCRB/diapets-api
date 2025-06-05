@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # Service class for creating and managing push tokens for users
 # This service handles the registration of Firebase Cloud Messaging (FCM) tokens
 # for users to enable push notifications
@@ -9,10 +11,10 @@ module Users
     # @param decoded_token [Hash] Decoded JWT token containing user information
     # @param params [Hash] Request parameters containing the push token
     def initialize(decoded_token, params)
-      Rails.logger.info("Initializing CreatePushToken service")
+      Rails.logger.info('Initializing CreatePushToken service')
       Rails.logger.debug("Decoded token user_id: #{decoded_token[:user_id]}")
       Rails.logger.debug("Push token to register: #{params[:token]&.slice(0, 10)}...")
-      
+
       @decoded_token = decoded_token
       @params = params
     end
@@ -20,12 +22,12 @@ module Users
     # Main method to create or update the push token for the user
     # Returns the created/found push token record
     def call
-      Rails.logger.info("Starting push token creation/update process")
+      Rails.logger.info('Starting push token creation/update process')
       Rails.logger.info("Processing push token for user: #{user.id}")
-      
+
       result = create_push_token(user)
       Rails.logger.info("Push token process completed successfully for user: #{user.id}")
-      
+
       result
     end
 
@@ -36,7 +38,7 @@ module Users
     # @return [User] The user associated with the decoded token
     def user
       Rails.logger.debug("Looking up user with ID: #{@decoded_token[:user_id]}")
-      
+
       @user ||= begin
         found_user = User.find(@decoded_token[:user_id])
         Rails.logger.info("Found user: #{found_user.email} (ID: #{found_user.id})")
@@ -54,22 +56,21 @@ module Users
     def create_push_token(user)
       Rails.logger.info("Creating/finding push token for user: #{user.id}")
       Rails.logger.debug("Token value: #{@params[:token]&.slice(0, 10)}...")
-      
+
       begin
         # Use find_or_create_by to ensure uniqueness per user-token combination
-        push_token = PushToken.find_or_create_by!(user: user, token: @params[:token]) do |pt|
+        push_token = PushToken.find_or_create_by!(user: user, token: @params[:token]) do |_pt|
           Rails.logger.info("Creating new push token record for user: #{user.id}")
         end
-        
+
         if push_token.persisted? && !push_token.previously_new_record?
           Rails.logger.info("Found existing push token for user: #{user.id}")
         else
           Rails.logger.info("Successfully created new push token for user: #{user.id}")
         end
-        
+
         Rails.logger.debug("Push token ID: #{push_token.id}")
         push_token
-        
       rescue ActiveRecord::RecordInvalid => e
         Rails.logger.error("Failed to create push token for user #{user.id}: #{e.message}")
         raise e
