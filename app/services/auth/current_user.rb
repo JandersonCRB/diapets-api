@@ -24,29 +24,65 @@ module Auth
     def call
       Rails.logger.info 'Retrieving current user from decoded token'
 
-      # Extract user ID from the decoded JWT token
-      user_id = @decoded_token[:user_id]
-      Rails.logger.debug "Looking up user with ID: #{user_id}"
-
-      # Find the user by ID
-      user = User.find_by(id: user_id)
-
-      # Validate that the user exists
-      if user.nil?
-        Rails.logger.warn "User not found for ID: #{user_id}"
-        raise Exceptions::NotFoundError.new, 'User not found'
-      end
-
-      Rails.logger.info "Successfully retrieved current user: #{user.email} (ID: #{user.id})"
-      Rails.logger.debug "User details: #{user.first_name} #{user.last_name}"
+      user_id = extract_user_id
+      user = find_user(user_id)
+      validate_user_existence(user, user_id)
+      log_user_success(user)
 
       user
     rescue Exceptions::NotFoundError => e
-      Rails.logger.error "Current user lookup failed: #{e.message}"
-      raise
+      handle_not_found_error(e)
     rescue StandardError => e
-      Rails.logger.error "Unexpected error during current user lookup: #{e.message}"
-      Rails.logger.error e.backtrace.join("\n")
+      handle_unexpected_error(e)
+    end
+
+    private
+
+    # Extract user ID from the decoded JWT token
+    # @return [String, Integer] The user ID
+    def extract_user_id
+      user_id = @decoded_token[:user_id]
+      Rails.logger.debug "Looking up user with ID: #{user_id}"
+      user_id
+    end
+
+    # Find user by ID
+    # @param user_id [String, Integer] The user ID to find
+    # @return [User, nil] The found user or nil
+    def find_user(user_id)
+      User.find_by(id: user_id)
+    end
+
+    # Validate that the user exists
+    # @param user [User, nil] The found user
+    # @param user_id [String, Integer] The user ID for error messages
+    # @raise [Exceptions::NotFoundError] If user is nil
+    def validate_user_existence(user, user_id)
+      return unless user.nil?
+
+      Rails.logger.warn "User not found for ID: #{user_id}"
+      raise Exceptions::NotFoundError.new, 'User not found'
+    end
+
+    # Log successful user retrieval
+    # @param user [User] The retrieved user
+    def log_user_success(user)
+      Rails.logger.info "Successfully retrieved current user: #{user.email} (ID: #{user.id})"
+      Rails.logger.debug "User details: #{user.first_name} #{user.last_name}"
+    end
+
+    # Handle not found errors
+    # @param error [Exceptions::NotFoundError] The not found error
+    def handle_not_found_error(error)
+      Rails.logger.error "Current user lookup failed: #{error.message}"
+      raise
+    end
+
+    # Handle unexpected errors during user lookup
+    # @param error [StandardError] The unexpected error
+    def handle_unexpected_error(error)
+      Rails.logger.error "Unexpected error during current user lookup: #{error.message}"
+      Rails.logger.error error.backtrace.join("\n")
       raise
     end
   end

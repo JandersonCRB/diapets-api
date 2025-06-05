@@ -32,23 +32,67 @@ module PushNotifications
       Rails.logger.info('Starting push notification delivery process')
       Rails.logger.info("Total notifications to send: #{@push_tokens.count}")
 
+      success_count, error_count = send_notifications_to_tokens
+      log_delivery_summary(success_count, error_count)
+    end
+
+    private
+
+    # Sends notifications to all push tokens and tracks success/error counts
+    # @return [Array<Integer>] Array containing success_count and error_count
+    def send_notifications_to_tokens
       success_count = 0
       error_count = 0
 
       @push_tokens.each_with_index do |push_token, index|
-        Rails.logger.info("Sending notification #{index + 1}/#{@push_tokens.count} to token: #{push_token[0..8]}...")
-        send_notification(push_token, @title, @body)
-        Rails.logger.info("Successfully sent notification to token: #{push_token[0..8]}...")
-        success_count += 1
-      rescue StandardError => e
-        Rails.logger.error("Failed to send notification to token #{push_token[0..8]}...: #{e.message}")
-        error_count += 1
+        success, error = process_single_notification(push_token, index)
+        success_count += success
+        error_count += error
       end
 
-      Rails.logger.info("Push notification delivery completed. Success: #{success_count}, Errors: #{error_count}")
+      [success_count, error_count]
     end
 
-    private
+    # Process a single notification and return success/error counts
+    # @param push_token [String] The push token to send to
+    # @param index [Integer] The current index in the iteration
+    # @return [Array<Integer>] Array containing success (1 or 0) and error (1 or 0) counts
+    def process_single_notification(push_token, index)
+      log_notification_attempt(push_token, index)
+      send_notification(push_token, @title, @body)
+      log_notification_success(push_token)
+      [1, 0]
+    rescue StandardError => e
+      log_notification_error(push_token, e)
+      [0, 1]
+    end
+
+    # Log notification attempt
+    # @param push_token [String] The push token
+    # @param index [Integer] The current index
+    def log_notification_attempt(push_token, index)
+      Rails.logger.info("Sending notification #{index + 1}/#{@push_tokens.count} to token: #{push_token[0..8]}...")
+    end
+
+    # Log successful notification
+    # @param push_token [String] The push token
+    def log_notification_success(push_token)
+      Rails.logger.info("Successfully sent notification to token: #{push_token[0..8]}...")
+    end
+
+    # Log notification error
+    # @param push_token [String] The push token
+    # @param error [StandardError] The error that occurred
+    def log_notification_error(push_token, error)
+      Rails.logger.error("Failed to send notification to token #{push_token[0..8]}...: #{error.message}")
+    end
+
+    # Logs the summary of notification delivery results
+    # @param success_count [Integer] Number of successfully sent notifications
+    # @param error_count [Integer] Number of failed notifications
+    def log_delivery_summary(success_count, error_count)
+      Rails.logger.info("Push notification delivery completed. Success: #{success_count}, Errors: #{error_count}")
+    end
 
     # Send a single push notification to a specific token
     # @param push_token [String] The FCM token to send the notification to

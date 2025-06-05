@@ -37,7 +37,17 @@ module Pets
     def validate_params
       Rails.logger.info('Validating pet creation parameters')
 
-      # Name validation
+      validate_name
+      validate_species
+      validate_birthdate
+      validate_insulin_frequency
+
+      Rails.logger.info('Pet parameters validation completed successfully')
+    end
+
+    # Validates pet name requirements
+    # Name must be present and between 2-50 characters
+    def validate_name
       raise Exceptions::BadRequestError.new('Name is required', detailed_code: 'NAME_REQUIRED') if @params[:name].nil?
 
       if @params[:name].length < 2
@@ -45,52 +55,59 @@ module Pets
                                               detailed_code: 'SHORT_NAME')
       end
       raise Exceptions::BadRequestError.new('Name is too big', detailed_code: 'BIG_NAME') if @params[:name].length > 50
+    end
 
-      # Species validation - only dogs and cats are supported
+    # Validates pet species requirements
+    # Species must be present and only dogs and cats are supported
+    def validate_species
       if @params[:species].nil?
         raise Exceptions::BadRequestError.new('Species is required',
                                               detailed_code: 'SPECIES_REQUIRED')
       end
-      raise Exceptions::BadRequestError.new('Species is invalid', detailed_code: 'INVALID_SPECIES') unless %w[DOG
-                                                                                                              CAT].include?(@params[:species])
+      return if %w[DOG CAT].include?(@params[:species])
 
-      # Birthdate validation - must be valid date and not in the future
-      if @params[:birthdate].nil?
-        raise Exceptions::BadRequestError.new('Birthdate is required',
-                                              detailed_code: 'BIRTHDATE_REQUIRED')
-      end
-      unless date_valid?(@params[:birthdate])
-        raise Exceptions::BadRequestError.new('Birthdate is invalid',
-                                              detailed_code: 'INVALID_BIRTHDATE')
-      end
-      if date_in_future?(@params[:birthdate])
-        raise Exceptions::BadRequestError.new('Birthdate is in the future',
-                                              detailed_code: 'FUTURE_BIRTHDATE')
-      end
+      raise Exceptions::BadRequestError.new('Species is invalid',
+                                            detailed_code: 'INVALID_SPECIES')
+    end
 
-      # Insulin frequency validation - must be positive integer between 1-24 hours
-      if @params[:insulin_frequency].nil?
-        raise Exceptions::BadRequestError.new('Insulin frequency is required',
-                                              detailed_code: 'INSULIN_FREQUENCY_REQUIRED')
-      end
-      unless @params[:insulin_frequency].is_a?(Integer)
-        raise Exceptions::BadRequestError.new('Insulin frequency is invalid',
-                                              detailed_code: 'INVALID_INSULIN_FREQUENCY')
-      end
-      if @params[:insulin_frequency].negative?
-        raise Exceptions::BadRequestError.new('Insulin frequency can not be negative',
-                                              detailed_code: 'NEGATIVE_INSULIN_FREQUENCY')
-      end
-      if @params[:insulin_frequency].zero?
-        raise Exceptions::BadRequestError.new('Insulin frequency can not be zero',
-                                              detailed_code: 'ZERO_INSULIN_FREQUENCY')
-      end
-      if @params[:insulin_frequency] > 24
-        raise Exceptions::BadRequestError.new('Insulin frequency is too big',
-                                              detailed_code: 'BIG_INSULIN_FREQUENCY')
-      end
+    # Validates pet birthdate requirements
+    # Birthdate must be valid date and not in the future
+    def validate_birthdate
+      validate_birthdate_presence
+      validate_birthdate_format
+      validate_birthdate_not_future
+    end
 
-      Rails.logger.info('Pet parameters validation completed successfully')
+    # Validates that birthdate is present
+    def validate_birthdate_presence
+      return unless @params[:birthdate].nil?
+
+      raise Exceptions::BadRequestError.new('Birthdate is required',
+                                            detailed_code: 'BIRTHDATE_REQUIRED')
+    end
+
+    # Validates that birthdate has valid format
+    def validate_birthdate_format
+      return if date_valid?(@params[:birthdate])
+
+      raise Exceptions::BadRequestError.new('Birthdate is invalid',
+                                            detailed_code: 'INVALID_BIRTHDATE')
+    end
+
+    # Validates that birthdate is not in the future
+    def validate_birthdate_not_future
+      return unless date_in_future?(@params[:birthdate])
+
+      raise Exceptions::BadRequestError.new('Birthdate is in the future',
+                                            detailed_code: 'FUTURE_BIRTHDATE')
+    end
+
+    # Validates insulin frequency requirements
+    # Frequency must be positive integer between 1-24 hours
+    def validate_insulin_frequency
+      validate_insulin_frequency_presence
+      validate_insulin_frequency_type
+      validate_insulin_frequency_range
     end
 
     # Creates a new pet record in the database
@@ -124,6 +141,59 @@ module Pets
       pet_owner.save!
 
       Rails.logger.info('Pet ownership created successfully')
+    end
+
+    # Validates that insulin frequency is present
+    # @raise [Exceptions::BadRequestError] If insulin frequency is missing
+    def validate_insulin_frequency_presence
+      return unless @params[:insulin_frequency].nil?
+
+      raise Exceptions::BadRequestError.new('Insulin frequency is required',
+                                            detailed_code: 'INSULIN_FREQUENCY_REQUIRED')
+    end
+
+    # Validates that insulin frequency is an integer
+    # @raise [Exceptions::BadRequestError] If insulin frequency is not an integer
+    def validate_insulin_frequency_type
+      return if @params[:insulin_frequency].is_a?(Integer)
+
+      raise Exceptions::BadRequestError.new('Insulin frequency is invalid',
+                                            detailed_code: 'INVALID_INSULIN_FREQUENCY')
+    end
+
+    # Validates that insulin frequency is within acceptable range (1-24)
+    # @raise [Exceptions::BadRequestError] If insulin frequency is out of range
+    def validate_insulin_frequency_range
+      validate_not_negative
+      validate_not_zero
+      validate_not_too_big
+    end
+
+    # Validates insulin frequency is not negative
+    # @raise [Exceptions::BadRequestError] If insulin frequency is negative
+    def validate_not_negative
+      return unless @params[:insulin_frequency].negative?
+
+      raise Exceptions::BadRequestError.new('Insulin frequency can not be negative',
+                                            detailed_code: 'NEGATIVE_INSULIN_FREQUENCY')
+    end
+
+    # Validates insulin frequency is not zero
+    # @raise [Exceptions::BadRequestError] If insulin frequency is zero
+    def validate_not_zero
+      return unless @params[:insulin_frequency].zero?
+
+      raise Exceptions::BadRequestError.new('Insulin frequency can not be zero',
+                                            detailed_code: 'ZERO_INSULIN_FREQUENCY')
+    end
+
+    # Validates insulin frequency is not greater than 24
+    # @raise [Exceptions::BadRequestError] If insulin frequency is too big
+    def validate_not_too_big
+      return unless @params[:insulin_frequency] > 24
+
+      raise Exceptions::BadRequestError.new('Insulin frequency is too big',
+                                            detailed_code: 'BIG_INSULIN_FREQUENCY')
     end
   end
 end

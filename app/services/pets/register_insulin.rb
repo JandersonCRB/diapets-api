@@ -11,7 +11,8 @@ module Pets
     # @param decoded_token [Hash] JWT token containing requesting user authentication data
     # @param params [Hash] Insulin application parameters including pet_id, responsible_id, etc.
     def initialize(decoded_token, params)
-      Rails.logger.info("Pets::RegisterInsulin initialized for user_id: #{decoded_token[:user_id]}, pet_id: #{params[:pet_id]}")
+      Rails.logger.info("Pets::RegisterInsulin initialized for user_id: #{decoded_token[:user_id]}, " \
+                        "pet_id: #{params[:pet_id]}")
       @decoded_token = decoded_token
       @params = params
     end
@@ -47,31 +48,13 @@ module Pets
     def notify_pet_owners(pet_id, _insulin_application)
       Rails.logger.info("Sending insulin registration notifications for pet_id: #{pet_id}")
 
-      pets = Pet.select(:id, :name)
-                .includes(owners: :push_tokens)
-                .where(id: pet_id)
+      pets = retrieve_pets_with_owners(pet_id)
 
       pets.each do |pet|
         Rails.logger.debug("Processing notifications for pet: #{pet.name}")
 
-        push_tokens = []
-        pet.owners.each do |owner|
-          owner.push_tokens.each do |push_token|
-            push_tokens << push_token.token
-          end
-        end
-
-        Rails.logger.debug("Collected #{push_tokens.size} push tokens for pet #{pet.name}")
-
-        next unless push_tokens.any?
-
-        PushNotifications::NotifyUsers.call(
-          push_tokens,
-          "#{pet.name}: Insulina registrada!",
-          "#{responsible.first_name} acabou de registrar uma aplicação de insulina"
-        )
-
-        Rails.logger.info("Insulin registration notifications sent for pet: #{pet.name}")
+        push_tokens = collect_push_tokens_for_pet(pet)
+        send_notification_to_pet_owners(pet, push_tokens) if push_tokens.any?
       end
     end
 
@@ -81,14 +64,7 @@ module Pets
     def register_insulin
       Rails.logger.info("Creating insulin application record with params: #{insulin_params.inspect}")
 
-      insulin_application = InsulinApplication.create!(
-        pet_id: pet_id,
-        user_id: @params[:responsible_id],
-        glucose_level: @params[:glucose_level],
-        insulin_units: @params[:insulin_units],
-        application_time: @params[:application_time],
-        observations: @params[:observations]
-      )
+      insulin_application = create_insulin_application(build_insulin_parameters)
 
       Rails.logger.info("Insulin application created successfully with ID: #{insulin_application.id}")
       insulin_application
@@ -135,6 +111,63 @@ module Pets
     # @return [Integer] The pet ID from parameters
     def pet_id
       @params[:pet_id]
+    end
+
+    # Retrieves pets with their owners and push tokens
+    # @param pet_id [Integer] ID of the pet
+    # @return [ActiveRecord::Relation] Pets with included owners and push tokens
+    def retrieve_pets_with_owners(pet_id)
+      Pet.select(:id, :name)
+         .includes(owners: :push_tokens)
+         .where(id: pet_id)
+    end
+
+    # Collects all push tokens for a pet's owners
+    # @param pet [Pet] The pet object with included owners and push tokens
+    # @return [Array<String>] Array of push token strings
+    def collect_push_tokens_for_pet(pet)
+      push_tokens = []
+      pet.owners.each do |owner|
+        owner.push_tokens.each do |push_token|
+          push_tokens << push_token.token
+        end
+      end
+
+      Rails.logger.debug("Collected #{push_tokens.size} push tokens for pet #{pet.name}")
+      push_tokens
+    end
+
+    # Sends notification to all owners of a pet
+    # @param pet [Pet] The pet object
+    # @param push_tokens [Array<String>] Array of push token strings
+    def send_notification_to_pet_owners(pet, push_tokens)
+      PushNotifications::NotifyUsers.call(
+        push_tokens,
+        "#{pet.name}: Insulina registrada!",
+        "#{responsible.first_name} acabou de registrar uma aplicação de insulina"
+      )
+
+      Rails.logger.info("Insulin registration notifications sent for pet: #{pet.name}")
+    end
+
+    # Builds parameters for insulin application creation
+    # @return [Hash] Parameters for InsulinApplication.create!
+    def build_insulin_parameters
+      {
+        pet_id: pet_id,
+        user_id: @params[:responsible_id],
+        glucose_level: @params[:glucose_level],
+        insulin_units: @params[:insulin_units],
+        application_time: @params[:application_time],
+        observations: @params[:observations]
+      }
+    end
+
+    # Creates the insulin application record
+    # @param parameters [Hash] Parameters for creating the insulin application
+    # @return [InsulinApplication] The created insulin application record
+    def create_insulin_application(parameters)
+      InsulinApplication.create!(parameters)
     end
 
     # Retrieves the responsible user who is applying the insulin

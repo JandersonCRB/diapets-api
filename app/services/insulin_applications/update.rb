@@ -11,7 +11,10 @@ module InsulinApplications
     # @param decoded_token [Hash] Decoded JWT token containing user information
     # @param params [Hash] Request parameters containing insulin_application_id and update data
     def initialize(decoded_token, params)
-      Rails.logger.info "InsulinApplications::Update initialized for user_id: #{decoded_token[:user_id]}, insulin_application_id: #{params[:insulin_application_id]}"
+      user_id = decoded_token[:user_id]
+      app_id = params[:insulin_application_id]
+      Rails.logger.info "InsulinApplications::Update initialized for user_id: #{user_id}, " \
+                        "insulin_application_id: #{app_id}"
       @decoded_token = decoded_token
       @params = params
     end
@@ -22,30 +25,12 @@ module InsulinApplications
     def call
       Rails.logger.info 'Starting insulin application update process'
 
-      # Find the insulin application record to update
       insulin_application = find_insulin_application
-      Rails.logger.info "Found insulin application with ID: #{insulin_application.id} for pet ID: #{insulin_application.pet_id}"
-
-      # Validate that the associated pet exists
-      validate_pet_existence(insulin_application.pet_id)
-      Rails.logger.debug "Validated pet existence for pet ID: #{insulin_application.pet_id}"
-
-      # Verify user has permission to update this insulin application
-      validate_pet_permission(user_id, insulin_application.pet_id)
-      Rails.logger.info "Authorization validated for user #{user_id} to update insulin application #{insulin_application.id}"
-
-      # Log the update parameters for audit trail
-      Rails.logger.debug "Update parameters: #{update_params}"
-
-      # Perform the update operation
-      updated_application = update_insulin_application(insulin_application)
-      Rails.logger.info "Successfully updated insulin application with ID: #{insulin_application.id}"
-
-      updated_application
+      log_found_application(insulin_application)
+      validate_and_authorize(insulin_application)
+      execute_update(insulin_application)
     rescue StandardError => e
-      Rails.logger.error "Failed to update insulin application: #{e.message}"
-      Rails.logger.error e.backtrace.join("\n")
-      raise
+      handle_update_error(e)
     end
 
     private
@@ -69,7 +54,16 @@ module InsulinApplications
     def update_insulin_application(insulin_application)
       Rails.logger.debug "Updating insulin application #{insulin_application.id} with new data"
 
-      # Store original values for logging
+      # Log original values for audit trail
+      log_original_values(insulin_application)
+
+      # Perform the update operation and handle results
+      perform_update_operation(insulin_application)
+    end
+
+    # Log the original values of the insulin application before update
+    # @param insulin_application [InsulinApplication] The record to log
+    def log_original_values(insulin_application)
       original_values = {
         application_time: insulin_application.application_time,
         insulin_units: insulin_application.insulin_units,
@@ -79,7 +73,13 @@ module InsulinApplications
       }
 
       Rails.logger.debug "Original values: #{original_values}"
+    end
 
+    # Perform the update operation and handle the results
+    # @param insulin_application [InsulinApplication] The record to update
+    # @return [InsulinApplication] The updated record
+    # @raise [ActiveRecord::RecordInvalid] If validation fails
+    def perform_update_operation(insulin_application)
       # Perform the update
       insulin_application.update!(update_params)
 
@@ -115,6 +115,49 @@ module InsulinApplications
     # @return [String, Integer] The authenticated user's ID
     def user_id
       @decoded_token[:user_id]
+    end
+
+    # Validate authorization and permissions for the insulin application update
+    # @param insulin_application [InsulinApplication] The insulin application to validate
+    def validate_and_authorize(insulin_application)
+      # Validate that the associated pet exists
+      validate_pet_existence(insulin_application.pet_id)
+      Rails.logger.debug "Validated pet existence for pet ID: #{insulin_application.pet_id}"
+
+      # Verify user has permission to update this insulin application
+      validate_pet_permission(user_id, insulin_application.pet_id)
+      Rails.logger.info "Authorization validated for user #{user_id} to update " \
+                        "insulin application #{insulin_application.id}"
+    end
+
+    # Execute the update operation with logging
+    # @param insulin_application [InsulinApplication] The insulin application to update
+    # @return [InsulinApplication] The updated insulin application record
+    def execute_update(insulin_application)
+      # Log the update parameters for audit trail
+      Rails.logger.debug "Update parameters: #{update_params}"
+
+      # Perform the update operation
+      updated_application = update_insulin_application(insulin_application)
+      Rails.logger.info "Successfully updated insulin application with ID: #{insulin_application.id}"
+
+      updated_application
+    end
+
+    # Log information about the found insulin application
+    # @param insulin_application [InsulinApplication] The found application
+    def log_found_application(insulin_application)
+      app_id = insulin_application.id
+      pet_id = insulin_application.pet_id
+      Rails.logger.info "Found insulin application with ID: #{app_id} for pet ID: #{pet_id}"
+    end
+
+    # Handle update errors
+    # @param error [StandardError] The error that occurred
+    def handle_update_error(error)
+      Rails.logger.error "Failed to update insulin application: #{error.message}"
+      Rails.logger.error error.backtrace.join("\n")
+      raise
     end
   end
 end

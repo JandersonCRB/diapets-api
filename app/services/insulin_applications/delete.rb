@@ -11,7 +11,10 @@ module InsulinApplications
     # @param token [Hash] Decoded JWT token containing user information
     # @param params [Hash] Request parameters containing insulin_application_id
     def initialize(token, params)
-      Rails.logger.info "InsulinApplications::Delete initialized for user_id: #{token[:user_id]}, insulin_application_id: #{params[:insulin_application_id]}"
+      user_id = token[:user_id]
+      app_id = params[:insulin_application_id]
+      Rails.logger.info "InsulinApplications::Delete initialized for user_id: #{user_id}, " \
+                        "insulin_application_id: #{app_id}"
       @token = token
       @params = params
     end
@@ -22,23 +25,12 @@ module InsulinApplications
     def call
       Rails.logger.info 'Starting insulin application deletion process'
 
-      # Find the insulin application record
       insulin_application = find_insulin_application
-      Rails.logger.info "Found insulin application with ID: #{insulin_application.id} for pet ID: #{insulin_application.pet_id}"
-
-      # Verify user has permission to delete this insulin application
-      validate_pet_permission(user_id, insulin_application.pet_id)
-      Rails.logger.info "Authorization validated for user #{user_id} to delete insulin application #{insulin_application.id}"
-
-      # Perform the deletion
-      result = insulin_application.destroy
-      Rails.logger.info "Successfully deleted insulin application with ID: #{insulin_application.id}"
-
-      result
+      log_found_application(insulin_application)
+      authorize_deletion(insulin_application)
+      perform_deletion(insulin_application)
     rescue StandardError => e
-      Rails.logger.error "Failed to delete insulin application: #{e.message}"
-      Rails.logger.error e.backtrace.join("\n")
-      raise
+      handle_deletion_error(e)
     end
 
     private
@@ -65,6 +57,40 @@ module InsulinApplications
     rescue ActiveRecord::RecordNotFound
       Rails.logger.warn "Insulin application not found with ID: #{insulin_application_id}"
       raise Exceptions::NotFoundError, 'Insulin application not found'
+    end
+
+    # Log information about the found insulin application
+    # @param insulin_application [InsulinApplication] The found application
+    def log_found_application(insulin_application)
+      app_id = insulin_application.id
+      pet_id = insulin_application.pet_id
+      Rails.logger.info "Found insulin application with ID: #{app_id} for pet ID: #{pet_id}"
+    end
+
+    # Authorize the deletion operation
+    # @param insulin_application [InsulinApplication] The application to authorize
+    def authorize_deletion(insulin_application)
+      pet_id = insulin_application.pet_id
+      validate_pet_permission(user_id, pet_id)
+      Rails.logger.info "Authorization validated for user #{user_id} to delete " \
+                        "insulin application #{insulin_application.id}"
+    end
+
+    # Perform the actual deletion
+    # @param insulin_application [InsulinApplication] The application to delete
+    # @return [Boolean] True if deletion was successful
+    def perform_deletion(insulin_application)
+      result = insulin_application.destroy
+      Rails.logger.info "Successfully deleted insulin application with ID: #{insulin_application.id}"
+      result
+    end
+
+    # Handle deletion errors
+    # @param error [StandardError] The error that occurred
+    def handle_deletion_error(error)
+      Rails.logger.error "Failed to delete insulin application: #{error.message}"
+      Rails.logger.error error.backtrace.join("\n")
+      raise
     end
   end
 end

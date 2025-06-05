@@ -9,22 +9,13 @@ module Helpers
     # @param user [User] The user object to generate a token for
     # @return [String] The encoded JWT token
     def generate_token(user)
-      Rails.logger.info "Generating JWT token for user ID: #{user.id}"
-
-      # Create payload with user identifier
-      payload = { user_id: user.id }
-      Rails.logger.debug "JWT payload: #{payload}"
-
-      # Encode the token using JWT service
-      token = Jwt::Encode.call(payload).result
-
-      Rails.logger.info "Successfully generated JWT token for user #{user.id}"
-      Rails.logger.debug "Generated token length: #{token&.length || 0} characters"
-
+      log_token_generation_start(user)
+      payload = build_jwt_payload(user)
+      token = encode_jwt_token(payload)
+      log_token_generation_success(user, token)
       token
     rescue StandardError => e
-      Rails.logger.error "Failed to generate JWT token for user #{user.id}: #{e.message}"
-      Rails.logger.error e.backtrace.join("\n")
+      log_token_generation_error(user, e)
       raise
     end
 
@@ -46,6 +37,46 @@ module Helpers
 
       Rails.logger.debug "JWT secret successfully retrieved (length: #{secret.length} characters)"
       secret
+    end
+
+    private
+
+    # Log the start of JWT token generation
+    # @param user [User] The user for whom the token is being generated
+    def log_token_generation_start(user)
+      Rails.logger.info "Generating JWT token for user ID: #{user.id}"
+    end
+
+    # Build the JWT payload for the given user
+    # @param user [User] The user object
+    # @return [Hash] The JWT payload
+    def build_jwt_payload(user)
+      payload = { user_id: user.id }
+      Rails.logger.debug "JWT payload: #{payload}"
+      payload
+    end
+
+    # Encode the JWT token using the payload
+    # @param payload [Hash] The JWT payload
+    # @return [String] The encoded JWT token
+    def encode_jwt_token(payload)
+      Jwt::Encode.call(payload).result
+    end
+
+    # Log successful JWT token generation
+    # @param user [User] The user for whom the token was generated
+    # @param token [String] The generated token
+    def log_token_generation_success(user, token)
+      Rails.logger.info "Successfully generated JWT token for user #{user.id}"
+      Rails.logger.debug "Generated token length: #{token&.length || 0} characters"
+    end
+
+    # Log JWT token generation error
+    # @param user [User] The user for whom the token generation failed
+    # @param error [StandardError] The error that occurred
+    def log_token_generation_error(user, error)
+      Rails.logger.error "Failed to generate JWT token for user #{user.id}: #{error.message}"
+      Rails.logger.error error.backtrace.join("\n")
     end
   end
 end

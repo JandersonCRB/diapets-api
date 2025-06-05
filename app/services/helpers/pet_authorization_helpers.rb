@@ -15,31 +15,8 @@ module Helpers
       Rails.logger.info "Validating pet permission for user #{user_id} on pet #{pet_id}"
       Rails.logger.debug "Owner permission required: #{owner_permission}"
 
-      # Build query parameters for permission check
-      query_params = {
-        owner_id: user_id,
-        pet_id: pet_id
-      }
-
-      # Add ownership level requirement if specified
-      if owner_permission
-        query_params[:ownership_level] = 'OWNER'
-        Rails.logger.debug 'Checking for OWNER level permission'
-      end
-
-      Rails.logger.debug "Query parameters for permission check: #{query_params}"
-
-      # Check if the pet ownership relationship exists
-      if PetOwner.exists?(query_params)
-        Rails.logger.info "Permission validated: User #{user_id} has access to pet #{pet_id}"
-        return
-      end
-
-      # Log authorization failure
-      Rails.logger.warn "Authorization failed: User #{user_id} lacks permission for pet #{pet_id}"
-      Rails.logger.warn "Required ownership level: #{owner_permission ? 'OWNER' : 'any'}"
-
-      raise Exceptions::UnauthorizedError
+      query_params = build_permission_query(user_id, pet_id, owner_permission)
+      check_permission_exists(query_params, user_id, pet_id, owner_permission)
     end
 
     # Validate that a pet exists in the database
@@ -59,6 +36,49 @@ module Helpers
       Rails.logger.warn "Pet not found: Pet with ID #{pet_id} does not exist"
 
       raise Exceptions::NotFoundError
+    end
+
+    private
+
+    # Build query parameters for pet permission check
+    # @param user_id [String, Integer] The ID of the user requesting access
+    # @param pet_id [String, Integer] The ID of the pet being accessed
+    # @param owner_permission [Boolean] Whether OWNER level permission is required
+    # @return [Hash] Query parameters for the permission check
+    def build_permission_query(user_id, pet_id, owner_permission)
+      query_params = {
+        owner_id: user_id,
+        pet_id: pet_id
+      }
+
+      # Add ownership level requirement if specified
+      if owner_permission
+        query_params[:ownership_level] = 'OWNER'
+        Rails.logger.debug 'Checking for OWNER level permission'
+      end
+
+      Rails.logger.debug "Query parameters for permission check: #{query_params}"
+      query_params
+    end
+
+    # Check if the pet ownership relationship exists and handle authorization
+    # @param query_params [Hash] Query parameters for the permission check
+    # @param user_id [String, Integer] The ID of the user requesting access
+    # @param pet_id [String, Integer] The ID of the pet being accessed
+    # @param owner_permission [Boolean] Whether OWNER level permission is required
+    # @raise [Exceptions::UnauthorizedError] If user lacks permission
+    def check_permission_exists(query_params, user_id, pet_id, owner_permission)
+      # Check if the pet ownership relationship exists
+      if PetOwner.exists?(query_params)
+        Rails.logger.info "Permission validated: User #{user_id} has access to pet #{pet_id}"
+        return
+      end
+
+      # Log authorization failure
+      Rails.logger.warn "Authorization failed: User #{user_id} lacks permission for pet #{pet_id}"
+      Rails.logger.warn "Required ownership level: #{owner_permission ? 'OWNER' : 'any'}"
+
+      raise Exceptions::UnauthorizedError
     end
   end
 end

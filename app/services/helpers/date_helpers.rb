@@ -32,21 +32,42 @@ module Helpers
       Rails.logger.debug "Checking if date '#{date}' is in the future"
 
       begin
-        # Parse the input date
-        parsed_date = Date.parse(date)
-        today = Time.zone.today
-
-        Rails.logger.debug "Parsed date: #{parsed_date}, Today: #{today}"
-
-        # Compare with today's date
-        is_future = parsed_date > today
-        Rails.logger.debug "Date #{parsed_date} is #{is_future ? 'in the future' : 'not in the future'}"
-
-        is_future
+        parsed_date, today = parse_date_and_today(date)
+        compare_date_with_today(parsed_date, today)
       rescue StandardError => e
-        Rails.logger.error "Failed to parse date '#{date}' for future check: #{e.message}"
-        raise ArgumentError, "Invalid date format: #{date}"
+        handle_date_parsing_error(date, e)
       end
+    end
+
+    private
+
+    # Parse the input date and get today's date
+    # @param date [String] The date string to parse
+    # @return [Array<Date>] Array containing parsed_date and today
+    def parse_date_and_today(date)
+      parsed_date = Date.parse(date)
+      today = Time.zone.today
+      Rails.logger.debug "Parsed date: #{parsed_date}, Today: #{today}"
+      [parsed_date, today]
+    end
+
+    # Compare the parsed date with today's date
+    # @param parsed_date [Date] The parsed date
+    # @param today [Date] Today's date
+    # @return [Boolean] True if the date is in the future
+    def compare_date_with_today(parsed_date, today)
+      is_future = parsed_date > today
+      Rails.logger.debug "Date #{parsed_date} is #{is_future ? 'in the future' : 'not in the future'}"
+      is_future
+    end
+
+    # Handle date parsing errors
+    # @param date [String] The original date string
+    # @param error [StandardError] The error that occurred
+    # @raise [ArgumentError] Always raises with formatted message
+    def handle_date_parsing_error(date, error)
+      Rails.logger.error "Failed to parse date '#{date}' for future check: #{error.message}"
+      raise ArgumentError, "Invalid date format: #{date}"
     end
   end
 end

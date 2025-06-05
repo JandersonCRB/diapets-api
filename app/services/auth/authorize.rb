@@ -31,25 +31,15 @@ module Auth
     def call
       Rails.logger.info 'Starting JWT token authorization process'
 
-      # Validate that a token is present
       validate_access_token
-      Rails.logger.debug 'Access token validation passed'
-
-      # Decode the JWT token to extract user information
-      Rails.logger.debug 'Decoding JWT token'
-      decoded_result = Jwt::Decode.call(access_token).result
-
-      Rails.logger.info 'JWT token successfully decoded and authorized'
-      Rails.logger.debug "Decoded token contains user_id: #{decoded_result[:user_id]}"
+      decoded_result = decode_token
+      log_success(decoded_result)
 
       decoded_result
     rescue Exceptions::InvalidTokenError => e
-      Rails.logger.error "Token authorization failed: #{e.message}"
-      raise
+      handle_token_error(e)
     rescue StandardError => e
-      Rails.logger.error "Unexpected error during token authorization: #{e.message}"
-      Rails.logger.error e.backtrace.join("\n")
-      raise
+      handle_unexpected_error(e)
     end
 
     private
@@ -66,6 +56,36 @@ module Auth
       end
 
       Rails.logger.debug 'Access token presence validation successful'
+    end
+
+    # Decode the JWT token to extract user information
+    # @return [Hash] The decoded JWT payload
+    def decode_token
+      Rails.logger.debug 'Access token validation passed'
+      Rails.logger.debug 'Decoding JWT token'
+      Jwt::Decode.call(access_token).result
+    end
+
+    # Log successful token authorization
+    # @param decoded_result [Hash] The decoded token payload
+    def log_success(decoded_result)
+      Rails.logger.info 'JWT token successfully decoded and authorized'
+      Rails.logger.debug "Decoded token contains user_id: #{decoded_result[:user_id]}"
+    end
+
+    # Handle token-specific errors
+    # @param error [Exceptions::InvalidTokenError] The token error
+    def handle_token_error(error)
+      Rails.logger.error "Token authorization failed: #{error.message}"
+      raise
+    end
+
+    # Handle unexpected errors during authorization
+    # @param error [StandardError] The unexpected error
+    def handle_unexpected_error(error)
+      Rails.logger.error "Unexpected error during token authorization: #{error.message}"
+      Rails.logger.error error.backtrace.join("\n")
+      raise
     end
 
     # Reader method for the extracted access token

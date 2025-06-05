@@ -27,44 +27,89 @@ module Jwt
     # @return [Hash] The decoded token payload with symbolized keys
     # @raise [Exceptions::InvalidTokenError] If token is invalid or verification fails
     def call
-      Rails.logger.info('Starting JWT token decoding process')
-      Rails.logger.debug('Using HS256 algorithm for token verification')
-      Rails.logger.debug("JWT secret configured: #{jwt_secret ? 'Yes' : 'No'}")
-
-      begin
-        # Decode the JWT token using the configured secret and algorithm
-        decoded = JWT.decode(token, jwt_secret, verify, { algorithm: 'HS256' })[0]
-        Rails.logger.debug("Raw decoded token: #{decoded}")
-
-        # Validate that the decoded token contains data
-        if decoded.blank?
-          Rails.logger.error('Decoded token is blank or empty')
-          raise Exceptions::InvalidTokenError.new, 'Invalid Token'
-        end
-
-        # Convert string keys to symbols for consistent access patterns
-        symbolized_payload = decoded.symbolize_keys
-        Rails.logger.info('Successfully decoded JWT token')
-        Rails.logger.debug("Token payload keys: #{symbolized_payload.keys}")
-        Rails.logger.debug("User ID from token: #{symbolized_payload[:user_id]}")
-
-        symbolized_payload
-      rescue JWT::VerificationError => e
-        Rails.logger.error("JWT verification failed: #{e.message}")
-        Rails.logger.debug("Token verification error details: #{e.class}")
-        raise Exceptions::InvalidTokenError.new, 'Invalid Token'
-      rescue JWT::DecodeError => e
-        Rails.logger.error("JWT decode error: #{e.message}")
-        Rails.logger.debug("Token decode error details: #{e.class}")
-        raise Exceptions::InvalidTokenError.new, 'Invalid Token'
-      rescue StandardError => e
-        Rails.logger.error("Unexpected error during JWT decoding: #{e.message}")
-        Rails.logger.debug("Error class: #{e.class}")
-        raise Exceptions::InvalidTokenError.new, 'Invalid Token'
-      end
+      log_initialization_info
+      validate_token
+      process_payload(decode_jwt_token)
     end
 
     private
+
+    # Log initialization information for debugging
+    def log_initialization_info
+      Rails.logger.info('Starting JWT token decoding process')
+      Rails.logger.debug('Using HS256 algorithm for token verification')
+      Rails.logger.debug("JWT secret configured: #{jwt_secret ? 'Yes' : 'No'}")
+    end
+
+    # Validate the token by checking if it exists and is not blank
+    # @raise [Exceptions::InvalidTokenError] If token is invalid
+    def validate_token
+      # Token presence validation could be added here if needed
+      # Currently relying on JWT library to handle missing tokens
+    end
+
+    # Decode the JWT token and handle any errors that occur during decoding
+    # @return [Hash] The raw decoded token payload
+    # @raise [Exceptions::InvalidTokenError] If token decoding fails
+    def decode_jwt_token
+      decoded = perform_jwt_decode
+      validate_decoded_token(decoded)
+      decoded
+    rescue JWT::VerificationError, JWT::DecodeError => e
+      handle_jwt_error(e)
+    rescue StandardError => e
+      handle_unexpected_decode_error(e)
+    end
+
+    # Process the decoded payload by converting keys to symbols and logging success
+    # @param decoded [Hash] The raw decoded token payload
+    # @return [Hash] The processed payload with symbolized keys
+    def process_payload(decoded)
+      # Convert string keys to symbols for consistent access patterns
+      symbolized_payload = decoded.symbolize_keys
+      Rails.logger.info('Successfully decoded JWT token')
+      Rails.logger.debug("Token payload keys: #{symbolized_payload.keys}")
+      Rails.logger.debug("User ID from token: #{symbolized_payload[:user_id]}")
+
+      symbolized_payload
+    end
+
+    # Perform the actual JWT decoding operation
+    # @return [Hash] The raw decoded token payload
+    def perform_jwt_decode
+      # Decode the JWT token using the configured secret and algorithm
+      decoded = JWT.decode(token, jwt_secret, verify, { algorithm: 'HS256' })[0]
+      Rails.logger.debug("Raw decoded token: #{decoded}")
+      decoded
+    end
+
+    # Validate that the decoded token contains data
+    # @param decoded [Hash] The decoded token payload
+    # @raise [Exceptions::InvalidTokenError] If token is blank or empty
+    def validate_decoded_token(decoded)
+      return if decoded.present?
+
+      Rails.logger.error('Decoded token is blank or empty')
+      raise Exceptions::InvalidTokenError.new, 'Invalid Token'
+    end
+
+    # Handle JWT-specific errors (verification and decoding errors)
+    # @param error [Exception] The JWT error that occurred
+    # @raise [Exceptions::InvalidTokenError] Always raises with generic error message
+    def handle_jwt_error(error)
+      Rails.logger.error("JWT error: #{error.message}")
+      Rails.logger.debug("JWT error details: #{error.class}")
+      raise Exceptions::InvalidTokenError.new, 'Invalid Token'
+    end
+
+    # Handle unexpected errors during token decoding
+    # @param error [StandardError] The unexpected error that occurred
+    # @raise [Exceptions::InvalidTokenError] Always raises with generic error message
+    def handle_unexpected_decode_error(error)
+      Rails.logger.error("Unexpected error during JWT decoding: #{error.message}")
+      Rails.logger.debug("Error class: #{error.class}")
+      raise Exceptions::InvalidTokenError.new, 'Invalid Token'
+    end
 
     # Accessor methods for instance variables
     # @return [String] The JWT token to decode

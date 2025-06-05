@@ -35,19 +35,42 @@ module Pets
     def find_pet
       Rails.logger.debug('Building complex query for pets needing insulin')
 
-      # Base query with timing calculations
-      pets = Pet.select(:id, 'insulin_applications.id AS insulin_application_id')
-                .where('pets.id not IN(:excluded_pets)', { excluded_pets: excluded_pets })
-                .where("EXTRACT(EPOCH FROM NOW() at time zone 'utc' - latest_applications.latest_application_time) / 60 >= (pets.insulin_frequency * 60) - :minutes_until_next_insulin", { minutes_until_next_insulin: minutes_until_next_insulin })
-                .where('NOT EXISTS (SELECT 1 FROM sent_notifications WHERE sent_notifications.pet_id = pets.id AND sent_notifications.minutes_alarm = :minutes_until_next_insulin AND insulin_applications.id = sent_notifications.last_insulin_id)', { minutes_until_next_insulin: minutes_until_next_insulin })
+      pets = build_base_query
+      pets = apply_late_pets_constraint(pets)
+      apply_joins(pets)
+    end
 
-      # Add constraint for non-late pets (exclude overdue pets if not specifically looking for them)
-      unless find_late_pets?
-        Rails.logger.debug('Adding constraint to exclude late pets')
-        pets = pets.where("EXTRACT(EPOCH FROM NOW() at time zone 'utc' - latest_applications.latest_application_time) / 60 < (pets.insulin_frequency * 60)")
-      end
+    # Builds the base query with timing calculations and notification constraints
+    # @return [ActiveRecord::Relation] Base query for pets needing insulin
+    def build_base_query
+      Pet.select(:id, 'insulin_applications.id AS insulin_application_id')
+         .where('pets.id not IN(:excluded_pets)', { excluded_pets: excluded_pets })
+         .where("EXTRACT(EPOCH FROM NOW() at time zone 'utc' - " \
+                'latest_applications.latest_application_time) / 60 >= ' \
+                '(pets.insulin_frequency * 60) - :minutes_until_next_insulin',
+                { minutes_until_next_insulin: minutes_until_next_insulin })
+         .where('NOT EXISTS (SELECT 1 FROM sent_notifications WHERE sent_notifications.pet_id = pets.id ' \
+                'AND sent_notifications.minutes_alarm = :minutes_until_next_insulin ' \
+                'AND insulin_applications.id = sent_notifications.last_insulin_id)',
+                { minutes_until_next_insulin: minutes_until_next_insulin })
+    end
 
-      # Join with latest application times and insulin applications
+    # Applies constraint to exclude late pets if not specifically looking for them
+    # @param pets [ActiveRecord::Relation] Base pets query
+    # @return [ActiveRecord::Relation] Query with late pets constraint applied
+    def apply_late_pets_constraint(pets)
+      return pets if find_late_pets?
+
+      Rails.logger.debug('Adding constraint to exclude late pets')
+      pets.where("EXTRACT(EPOCH FROM NOW() at time zone 'utc' - " \
+                 'latest_applications.latest_application_time) / 60 < ' \
+                 '(pets.insulin_frequency * 60)')
+    end
+
+    # Applies joins with latest application times and insulin applications
+    # @param pets [ActiveRecord::Relation] Base pets query with constraints
+    # @return [ActiveRecord::Relation] Final query with all necessary joins
+    def apply_joins(pets)
       pets.joins("INNER JOIN (
           SELECT pet_id, MAX(application_time) AS latest_application_time
           FROM insulin_applications

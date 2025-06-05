@@ -62,21 +62,39 @@ module Pets
     def notify_all(pet_ids)
       Rails.logger.info("Sending notifications to owners of #{pet_ids.count} pets")
 
-      pets = Pet.select(:id, :name).includes(owners: :push_tokens).where(id: pet_ids.map(&:id))
+      pets = load_pets_with_owners(pet_ids)
+      process_pet_notifications(pets)
+    end
 
+    # Load pets with their owners and push tokens
+    # @param pet_ids [ActiveRecord::Relation] Pet IDs to load
+    # @return [ActiveRecord::Relation] Pets with included associations
+    def load_pets_with_owners(pet_ids)
+      Pet.select(:id, :name).includes(owners: :push_tokens).where(id: pet_ids.map(&:id))
+    end
+
+    # Process notifications for each pet
+    # @param pets [ActiveRecord::Relation] Pets to process
+    def process_pet_notifications(pets)
       pets.each do |pet|
         Rails.logger.debug("Processing notifications for pet: #{pet.name} (ID: #{pet.id})")
-
-        push_tokens = []
-        pet.owners.each do |owner|
-          owner.push_tokens.each do |push_token|
-            push_tokens << push_token.token
-          end
-        end
-
-        Rails.logger.debug("Collected #{push_tokens.size} push tokens for pet #{pet.name}")
+        push_tokens = collect_push_tokens_for_pet(pet)
         notify_users(push_tokens, pet.name) if push_tokens.any?
       end
+    end
+
+    # Collect push tokens for a specific pet
+    # @param pet [Pet] The pet to collect tokens for
+    # @return [Array<String>] Array of push tokens
+    def collect_push_tokens_for_pet(pet)
+      push_tokens = []
+      pet.owners.each do |owner|
+        owner.push_tokens.each do |push_token|
+          push_tokens << push_token.token
+        end
+      end
+      Rails.logger.debug("Collected #{push_tokens.size} push tokens for pet #{pet.name}")
+      push_tokens
     end
 
     # Sends push notification to specific users about a pet's insulin needs

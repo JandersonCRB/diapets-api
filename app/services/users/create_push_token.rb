@@ -27,9 +27,7 @@ module Users
       Rails.logger.info("Processing push token for user: #{user.id}")
 
       result = create_push_token(user)
-      Rails.logger.info("Push token process completed successfully for user: #{user.id}")
-
-      result
+      log_success_and_return_result(result)
     end
 
     private
@@ -55,30 +53,65 @@ module Users
     # @param user [User] The user to create the push token for
     # @return [PushToken] The created or existing push token record
     def create_push_token(user)
-      Rails.logger.info("Creating/finding push token for user: #{user.id}")
-      Rails.logger.debug("Token value: #{@params[:token]&.slice(0, 10)}...")
+      log_push_token_creation_start(user)
 
       begin
-        # Use find_or_create_by to ensure uniqueness per user-token combination
-        push_token = PushToken.find_or_create_by!(user: user, token: @params[:token]) do |_pt|
-          Rails.logger.info("Creating new push token record for user: #{user.id}")
-        end
-
-        if push_token.persisted? && !push_token.previously_new_record?
-          Rails.logger.info("Found existing push token for user: #{user.id}")
-        else
-          Rails.logger.info("Successfully created new push token for user: #{user.id}")
-        end
-
-        Rails.logger.debug("Push token ID: #{push_token.id}")
+        push_token = find_or_create_token_for_user(user)
+        log_token_creation_result(push_token, user)
         push_token
-      rescue ActiveRecord::RecordInvalid => e
-        Rails.logger.error("Failed to create push token for user #{user.id}: #{e.message}")
-        raise e
       rescue StandardError => e
-        Rails.logger.error("Unexpected error creating push token for user #{user.id}: #{e.message}")
-        raise e
+        handle_push_token_creation_error(user, e)
       end
+    end
+
+    # Log the start of push token creation
+    # @param user [User] The user for whom the token is being created
+    def log_push_token_creation_start(user)
+      Rails.logger.info("Creating/finding push token for user: #{user.id}")
+      Rails.logger.debug("Token value: #{@params[:token]&.slice(0, 10)}...")
+    end
+
+    # Handle push token creation errors
+    # @param user [User] The user for whom token creation failed
+    # @param error [StandardError] The error that occurred
+    # @raise [StandardError] Re-raises the original error
+    def handle_push_token_creation_error(user, error)
+      if error.is_a?(ActiveRecord::RecordInvalid)
+        Rails.logger.error("Failed to create push token for user #{user.id}: #{error.message}")
+      else
+        Rails.logger.error("Unexpected error creating push token for user #{user.id}: #{error.message}")
+      end
+      raise error
+    end
+
+    # Finds or creates a push token for the user
+    # @param user [User] The user to create the push token for
+    # @return [PushToken] The created or existing push token record
+    def find_or_create_token_for_user(user)
+      PushToken.find_or_create_by!(user: user, token: @params[:token]) do |_pt|
+        Rails.logger.info("Creating new push token record for user: #{user.id}")
+      end
+    end
+
+    # Logs the result of token creation and returns the result
+    # @param push_token [PushToken] The push token record
+    # @param user [User] The user associated with the token
+    def log_token_creation_result(push_token, user)
+      if push_token.persisted? && !push_token.previously_new_record?
+        Rails.logger.info("Found existing push token for user: #{user.id}")
+      else
+        Rails.logger.info("Successfully created new push token for user: #{user.id}")
+      end
+
+      Rails.logger.debug("Push token ID: #{push_token.id}")
+    end
+
+    # Logs success message and returns the result
+    # @param result [PushToken] The push token result
+    # @return [PushToken] The push token result
+    def log_success_and_return_result(result)
+      Rails.logger.info("Push token process completed successfully for user: #{user.id}")
+      result
     end
   end
 end

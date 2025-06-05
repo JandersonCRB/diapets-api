@@ -11,7 +11,8 @@ module Pets
     # @param decoded_token [Hash] JWT token containing user authentication data
     # @param params [Hash] Filter parameters including pet_id and optional filters
     def initialize(decoded_token, params)
-      Rails.logger.info("Pets::FindAllInsulinApplications initialized for user_id: #{decoded_token[:user_id]}, pet_id: #{params[:pet_id]}")
+      Rails.logger.info("Pets::FindAllInsulinApplications initialized for user_id: #{decoded_token[:user_id]}, " \
+                        "pet_id: #{params[:pet_id]}")
       @decoded_token = decoded_token
       @params = params
     end

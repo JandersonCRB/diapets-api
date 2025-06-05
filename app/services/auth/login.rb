@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require 'English'
 module Auth
   # Service class responsible for user authentication and login
   # Validates user credentials and generates JWT tokens for successful logins
@@ -23,19 +24,48 @@ module Auth
     def call
       Rails.logger.info "Starting login process for email: #{@params[:email]}"
 
-      # Find the user by email
+      user = authenticate_user
+      token = generate_authentication_token(user)
+      build_login_response(user, token)
+    rescue Exceptions::NotFoundError, Exceptions::InvalidCredentialsError
+      handle_authentication_error($ERROR_INFO)
+    rescue StandardError => e
+      handle_unexpected_error(e)
+    end
+
+    private
+
+    # Authenticate user by finding them and validating their password
+    # Combines user lookup and password validation into a single operation
+    # @return [User] The authenticated user record
+    # @raise [Exceptions::NotFoundError] If user is not found
+    # @raise [Exceptions::InvalidCredentialsError] If password is incorrect
+    def authenticate_user
       user = find_user
       Rails.logger.info "User found for login: #{user.email} (ID: #{user.id})"
 
-      # Validate the provided password
       validate_password(user)
       Rails.logger.info "Password validation successful for user: #{user.email}"
 
-      # Generate authentication token
+      user
+    end
+
+    # Generate authentication token for the authenticated user
+    # Creates a JWT token for the user session
+    # @param user [User] The authenticated user record
+    # @return [String] The generated JWT token
+    def generate_authentication_token(user)
       token = generate_token(user)
       Rails.logger.info "Authentication token generated for user: #{user.email}"
+      token
+    end
 
-      # Return successful login response
+    # Build the successful login response
+    # Creates the response hash containing token and user data
+    # @param user [User] The authenticated user record
+    # @param token [String] The generated JWT token
+    # @return [Hash] Hash containing authentication token and user object
+    def build_login_response(user, token)
       login_response = {
         token: token,
         user: user
@@ -43,19 +73,7 @@ module Auth
 
       Rails.logger.info "Login successful for user: #{user.email}"
       login_response
-    rescue Exceptions::NotFoundError
-      Rails.logger.warn "Login failed: User not found for email #{@params[:email]}"
-      raise
-    rescue Exceptions::InvalidCredentialsError
-      Rails.logger.warn "Login failed: Invalid credentials for email #{@params[:email]}"
-      raise
-    rescue StandardError => e
-      Rails.logger.error "Unexpected error during login for #{@params[:email]}: #{e.message}"
-      Rails.logger.error e.backtrace.join("\n")
-      raise
     end
-
-    private
 
     # Find user by email address
     # Searches for a user record with the provided email
@@ -94,6 +112,28 @@ module Auth
       end
 
       Rails.logger.debug "Password validation successful for user: #{user.email}"
+    end
+
+    # Handle authentication-related errors (not found, invalid credentials)
+    # @param error [Exception] The authentication error that occurred
+    # @raise [Exception] Re-raises the original error after logging
+    def handle_authentication_error(error)
+      case error
+      when Exceptions::NotFoundError
+        Rails.logger.warn "Login failed: User not found for email #{@params[:email]}"
+      when Exceptions::InvalidCredentialsError
+        Rails.logger.warn "Login failed: Invalid credentials for email #{@params[:email]}"
+      end
+      raise error
+    end
+
+    # Handle unexpected errors during login process
+    # @param error [StandardError] The unexpected error that occurred
+    # @raise [StandardError] Re-raises the original error after logging
+    def handle_unexpected_error(error)
+      Rails.logger.error "Unexpected error during login for #{@params[:email]}: #{error.message}"
+      Rails.logger.error error.backtrace.join("\n")
+      raise error
     end
   end
 end

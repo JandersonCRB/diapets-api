@@ -22,36 +22,13 @@ module Auth
     def call
       Rails.logger.info "Starting user registration process for email: #{@params[:email]}"
 
-      # Perform comprehensive input validation
-      validate_email
-      Rails.logger.debug 'Email validation passed'
-
-      validate_password
-      Rails.logger.debug 'Password validation passed'
-
-      validate_names
-      Rails.logger.debug 'Name validation passed'
-
-      # Create the new user account
-      user = create_user
-      Rails.logger.info "User account created successfully: #{user.email} (ID: #{user.id})"
-
-      # Generate authentication token for immediate login
-      token = generate_token(user)
-      Rails.logger.info "Authentication token generated for new user: #{user.email}"
-
-      # Return registration response
-      registration_response = { token: token, user: user }
-      Rails.logger.info "User registration completed successfully for: #{user.email}"
-
-      registration_response
+      validate_all_inputs
+      user = create_new_user
+      build_registration_response(user)
     rescue Exceptions::UnprocessableEntityError => e
-      Rails.logger.warn "User registration failed for #{@params[:email]}: #{e.message}"
-      raise
+      handle_validation_error(e)
     rescue StandardError => e
-      Rails.logger.error "Unexpected error during user registration for #{@params[:email]}: #{e.message}"
-      Rails.logger.error e.backtrace.join("\n")
-      raise
+      handle_unexpected_error(e)
     end
 
     private
@@ -62,23 +39,9 @@ module Auth
     def validate_email
       Rails.logger.debug "Validating email: #{@params[:email]}"
 
-      # Check if email is present
-      if @params[:email].blank?
-        Rails.logger.debug 'Email validation failed: email is blank'
-        raise Exceptions::UnprocessableEntityError.new('Email is required', detailed_code: 'EMAIL_REQUIRED')
-      end
-
-      # Validate email format using URI regexp
-      unless @params[:email] =~ URI::MailTo::EMAIL_REGEXP
-        Rails.logger.debug "Email validation failed: invalid format for #{@params[:email]}"
-        raise Exceptions::UnprocessableEntityError.new('Email is invalid', detailed_code: 'INVALID_EMAIL')
-      end
-
-      # Check if email is already registered
-      if User.exists?(email: @params[:email])
-        Rails.logger.debug "Email validation failed: email already exists #{@params[:email]}"
-        raise Exceptions::UnprocessableEntityError.new('Email is already taken', detailed_code: 'EMAIL_TAKEN')
-      end
+      validate_email_presence
+      validate_email_format
+      validate_email_uniqueness
 
       Rails.logger.debug "Email validation successful for: #{@params[:email]}"
     end
@@ -117,6 +80,53 @@ module Auth
     def validate_names
       Rails.logger.debug 'Validating name requirements'
 
+      validate_first_name
+      validate_last_name
+
+      Rails.logger.debug "Name validation successful: #{@params[:first_name]} #{@params[:last_name]}"
+    end
+
+    # Perform comprehensive validation of all input parameters
+    # Validates email, password, and name requirements in sequence
+    # @raise [Exceptions::UnprocessableEntityError] If any validation fails
+    def validate_all_inputs
+      validate_email
+      Rails.logger.debug 'Email validation passed'
+
+      validate_password
+      Rails.logger.debug 'Password validation passed'
+
+      validate_names
+      Rails.logger.debug 'Name validation passed'
+    end
+
+    # Create new user account with validated parameters
+    # Combines user creation and logging into a single operation
+    # @return [User] The newly created user record
+    def create_new_user
+      user = create_user
+      Rails.logger.info "User account created successfully: #{user.email} (ID: #{user.id})"
+      user
+    end
+
+    # Build successful registration response with token and user data
+    # Creates the response hash and generates authentication token
+    # @param user [User] The newly created user record
+    # @return [Hash] Hash containing authentication token and user object
+    def build_registration_response(user)
+      token = generate_token(user)
+      Rails.logger.info "Authentication token generated for new user: #{user.email}"
+
+      registration_response = { token: token, user: user }
+      Rails.logger.info "User registration completed successfully for: #{user.email}"
+
+      registration_response
+    end
+
+    # Validate first name presence and length requirements
+    # Ensures first name is present and meets minimum length
+    # @raise [Exceptions::UnprocessableEntityError] If first name validation fails
+    def validate_first_name
       # Validate first name presence
       if @params[:first_name].blank?
         Rails.logger.debug 'Name validation failed: first name is blank'
@@ -124,11 +134,16 @@ module Auth
       end
 
       # Validate first name length
-      if @params[:first_name].length < 2
-        Rails.logger.debug "Name validation failed: first name too short (#{@params[:first_name].length} characters)"
-        raise Exceptions::UnprocessableEntityError.new('First name is too short', detailed_code: 'FIRST_NAME_SHORT')
-      end
+      return unless @params[:first_name].length < 2
 
+      Rails.logger.debug "Name validation failed: first name too short (#{@params[:first_name].length} characters)"
+      raise Exceptions::UnprocessableEntityError.new('First name is too short', detailed_code: 'FIRST_NAME_SHORT')
+    end
+
+    # Validate last name presence and length requirements
+    # Ensures last name is present and meets minimum length
+    # @raise [Exceptions::UnprocessableEntityError] If last name validation fails
+    def validate_last_name
       # Validate last name presence
       if @params[:last_name].blank?
         Rails.logger.debug 'Name validation failed: last name is blank'
@@ -136,12 +151,10 @@ module Auth
       end
 
       # Validate last name length
-      if @params[:last_name].length < 2
-        Rails.logger.debug "Name validation failed: last name too short (#{@params[:last_name].length} characters)"
-        raise Exceptions::UnprocessableEntityError.new('Last name is too short', detailed_code: 'LAST_NAME_SHORT')
-      end
+      return unless @params[:last_name].length < 2
 
-      Rails.logger.debug "Name validation successful: #{@params[:first_name]} #{@params[:last_name]}"
+      Rails.logger.debug "Name validation failed: last name too short (#{@params[:last_name].length} characters)"
+      raise Exceptions::UnprocessableEntityError.new('Last name is too short', detailed_code: 'LAST_NAME_SHORT')
     end
 
     # Build sanitized user parameters for account creation
@@ -154,6 +167,50 @@ module Auth
         first_name: @params[:first_name],
         last_name: @params[:last_name]
       }
+    end
+
+    # Handle validation errors during registration
+    # @param error [Exceptions::UnprocessableEntityError] The validation error
+    # @raise [Exceptions::UnprocessableEntityError] Re-raises the error after logging
+    def handle_validation_error(error)
+      Rails.logger.warn "User registration failed for #{@params[:email]}: #{error.message}"
+      raise error
+    end
+
+    # Handle unexpected errors during registration
+    # @param error [StandardError] The unexpected error that occurred
+    # @raise [StandardError] Re-raises the error after logging
+    def handle_unexpected_error(error)
+      Rails.logger.error "Unexpected error during user registration for #{@params[:email]}: #{error.message}"
+      Rails.logger.error error.backtrace.join("\n")
+      raise error
+    end
+
+    # Validate that email is present and not blank
+    # @raise [Exceptions::UnprocessableEntityError] If email is blank
+    def validate_email_presence
+      return if @params[:email].present?
+
+      Rails.logger.debug 'Email validation failed: email is blank'
+      raise Exceptions::UnprocessableEntityError.new('Email is required', detailed_code: 'EMAIL_REQUIRED')
+    end
+
+    # Validate email format using URI regexp
+    # @raise [Exceptions::UnprocessableEntityError] If email format is invalid
+    def validate_email_format
+      return if @params[:email] =~ URI::MailTo::EMAIL_REGEXP
+
+      Rails.logger.debug "Email validation failed: invalid format for #{@params[:email]}"
+      raise Exceptions::UnprocessableEntityError.new('Email is invalid', detailed_code: 'INVALID_EMAIL')
+    end
+
+    # Validate that email is not already registered
+    # @raise [Exceptions::UnprocessableEntityError] If email already exists
+    def validate_email_uniqueness
+      return unless User.exists?(email: @params[:email])
+
+      Rails.logger.debug "Email validation failed: email already exists #{@params[:email]}"
+      raise Exceptions::UnprocessableEntityError.new('Email is already taken', detailed_code: 'EMAIL_TAKEN')
     end
   end
 end

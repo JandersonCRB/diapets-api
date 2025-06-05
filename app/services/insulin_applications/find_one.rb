@@ -11,7 +11,10 @@ module InsulinApplications
     # @param decoded_token [Hash] Decoded JWT token containing user information
     # @param params [Hash] Request parameters containing insulin_application_id
     def initialize(decoded_token, params)
-      Rails.logger.info "InsulinApplications::FindOne initialized for user_id: #{decoded_token[:user_id]}, insulin_application_id: #{params[:insulin_application_id]}"
+      user_id = decoded_token[:user_id]
+      app_id = params[:insulin_application_id]
+      Rails.logger.info "InsulinApplications::FindOne initialized for user_id: #{user_id}, " \
+                        "insulin_application_id: #{app_id}"
       @decoded_token = decoded_token
       @params = params
     end
@@ -22,24 +25,14 @@ module InsulinApplications
     def call
       Rails.logger.info 'Starting insulin application retrieval process'
 
-      # Find the insulin application record
       insulin_application = find_insulin_application
-      Rails.logger.info "Found insulin application with ID: #{insulin_application.id} for pet ID: #{insulin_application.pet_id}"
+      log_found_application(insulin_application)
+      authorize_access(insulin_application)
+      log_retrieval_success(insulin_application)
 
-      # Validate that the associated pet exists
-      validate_pet_existence(insulin_application.pet_id)
-      Rails.logger.debug "Validated pet existence for pet ID: #{insulin_application.pet_id}"
-
-      # Verify user has permission to access this insulin application
-      validate_pet_permission(user_id, insulin_application.pet_id)
-      Rails.logger.info "Authorization validated for user #{user_id} to access insulin application #{insulin_application.id}"
-
-      Rails.logger.info "Successfully retrieved insulin application with ID: #{insulin_application.id}"
       insulin_application
     rescue StandardError => e
-      Rails.logger.error "Failed to retrieve insulin application: #{e.message}"
-      Rails.logger.error e.backtrace.join("\n")
-      raise
+      handle_retrieval_error(e)
     end
 
     private
@@ -66,6 +59,40 @@ module InsulinApplications
     # @return [String, Integer] The authenticated user's ID
     def user_id
       @decoded_token[:user_id]
+    end
+
+    # Log information about the found insulin application
+    # @param insulin_application [InsulinApplication] The found application
+    def log_found_application(insulin_application)
+      app_id = insulin_application.id
+      pet_id = insulin_application.pet_id
+      Rails.logger.info "Found insulin application with ID: #{app_id} for pet ID: #{pet_id}"
+    end
+
+    # Authorize access to the insulin application
+    # @param insulin_application [InsulinApplication] The application to authorize
+    def authorize_access(insulin_application)
+      pet_id = insulin_application.pet_id
+      validate_pet_existence(pet_id)
+      Rails.logger.debug "Validated pet existence for pet ID: #{pet_id}"
+
+      validate_pet_permission(user_id, pet_id)
+      Rails.logger.info "Authorization validated for user #{user_id} to access " \
+                        "insulin application #{insulin_application.id}"
+    end
+
+    # Log successful retrieval
+    # @param insulin_application [InsulinApplication] The retrieved application
+    def log_retrieval_success(insulin_application)
+      Rails.logger.info "Successfully retrieved insulin application with ID: #{insulin_application.id}"
+    end
+
+    # Handle retrieval errors
+    # @param error [StandardError] The error that occurred
+    def handle_retrieval_error(error)
+      Rails.logger.error "Failed to retrieve insulin application: #{error.message}"
+      Rails.logger.error error.backtrace.join("\n")
+      raise
     end
   end
 end
